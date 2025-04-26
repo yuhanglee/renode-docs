@@ -1,46 +1,44 @@
-# Metrics analyzer
+# 度量分析器
 
-Renode enables collecting execution data from the simulation and allows profiling the execution itself.
-Currently supported execution metrics:
+Renode 支持从模拟中收集执行数据，并允许分析执行本身。当前支持的执行指标：
 
--   executed instructions,
--   memory accesses,
--   peripheral accesses,
--   exceptions.
+-   executed instructions, 已执行指令
+-   memory accesses,  内存访问
+-   peripheral accesses,  外围访问
+-   exceptions.  异常
 
-## Profiling
+## 性能分析
 
-To enable profiling in Renode, type:
+要在 Renode 中启用性能分析，请键入：
 
 ```
 (monitor) machine EnableProfiler "path_to_dump_file"
 ```
 
-Run the simulation. The profiler is now collecting data from the metrics. Close Renode once this step is finished.
-As a result, you will get a dump file with collected metrics.
+运行模拟。分析器现在正在从指标中收集数据。完成此步骤后，关闭 Renode。因此，您将获得一个包含收集的指标的转储文件。
 
-The dump can be analyzed using the {rsrc}`metrics_parser Python library<tools/metrics_analyzer/metrics_parser/__init__.py>` or visualised with the provided helper script.
+可以使用 {rsrc}`metrics_parser Python 库library<tools/metrics_analyzer/metrics_parser/__init__.py>`分析转储，也可以使用提供的帮助程序脚本进行可视化。
 
-## Visualizing
+## 可视化
 
-To display graph representations of the collected data by means of the visualizer bundled with Renode follow these steps:
+要通过与 Renode 捆绑的可视化工具显示所收集数据的图形表示，请执行以下步骤：
 
-### Additional prerequisites
+### 其他先决条件
 
-To install prerequisites for the metrics visualization layer, run the following command from the root Renode directory :
+要安装指标可视化层的先决条件，请从根 Renode 目录运行以下命令：
 
 ```sh
 python3 -m pip install --user -r tools/metrics_analyzer/metrics_visualizer/requirements.txt
 ```
 
-### Run script
+### 运行脚本
 
-Run the following script:
+运行以下脚本：
 
 ```sh
 python3 tools/metrics_analyzer/metrics_visualizer/metrics-visualizer.py path_to_dump_file
 ```
 
-As a result, a window with graphs should appear, similar to the one presented below.
+因此，应该会出现一个带有图形的窗口，类似于下面显示的窗口。
 
 ![image](img/metrics.png)

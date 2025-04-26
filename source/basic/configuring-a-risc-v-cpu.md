@@ -1,9 +1,8 @@
-# Configuring a RISC-V CPU
+# 配置 RISC-V CPU
 
-Among the architectures supported in Renode, RISC-V is one of the most prominent.
-Renode supports both 32 and 64-bit versions of RISC-V, Privileged Architecture in various versions and a broad range of extensions.
+在 Renode 支持的架构中，RISC-V 是最突出的架构之一。Renode 支持 RISC-V 的 32 位和 64 位版本、各种版本的特权架构和广泛的扩展。
 
-The most common base ISA sets supported by Renode are:
+Renode 支持的最常见的基本 ISA 集是：
 
 - RV32/64I Base (`I`)
 - Integer Multiplication and Division (`M`)
@@ -13,9 +12,9 @@ The most common base ISA sets supported by Renode are:
 - Control and Status Register Instructions (`Zicsr`)
 - Instruction-Fetch Fence (`Zifencei`)
 
-All of the above constitute the `G` set.
+以上所有内容都构成了 `G` 集。
 
-Renode also supports many of the ISA extensions like:
+Renode 还支持许多 ISA 扩展，例如：
 
 - Compressed Instructions (`C`)
 - Vector Operations (`V`)
@@ -28,75 +27,72 @@ Renode also supports many of the ISA extensions like:
 - Atomic Compare-and-Swap (CAS) (`Zacas`)
 - PMP Enhancements for memory access and execution prevention in Machine mode (`Smepmp`)
 
-Lastly, Renode also supports custom, non standard instruction sets.
-Some of them can be selected like other instruction sets(e.g. `Xandes`), others are defined directly in their respective core classes (e.g. `CV32E40P`).
+最后，Renode 还支持自定义的非标准指令集。其中一些可以像其他指令集（例如 `Xandes`）一样进行选择，其他则可以直接在各自的核心类（例如 `CV32E40P`）中定义。
 
-To define a RISC-V core in your simulation, you must edit the Renode Platform file (.repl) and add a node for the CPU.
+要在仿真中定义 RISC-V 内核，必须编辑 Renode 平台文件 （.repl） 并为 CPU 添加节点。
 
-## Picking specific ISA variants
+## 选择特定的 ISA 变体
 
-Start by adding `CPU.RiscV32` or `CPU.RiscV64` to the .repl file:
+首先添加 `CPU。RiscV32` 或 `CPU。RiscV64` 复制到 .repl 文件：
 ```
 cpu: CPU.RiscV32 @ sysbus
 ```
-then use the `cpuType` argument to specify the ISA and the required extensions.
+然后使用 `cpuType` 参数指定 ISA 和所需的扩展。
 
-Start with "rv32" or "rv64", depending on the architecture width, followed by a list of enabled ISA sets.
-Extensions with names longer than one character have to be separated by an underscore.
+根据架构宽度，从 “rv32” 或 “rv64” 开始，然后是已启用的 ISA 集列表。名称长度超过一个字符的扩展必须用下划线分隔。
 
-For example:
+例如：
 ```
 cpu: CPU.RiscV32 @ sysbus
   cpuType: "rv32imaf_zicsr_zifencei"
 ```
-which denotes a 32-bit RISC-V with the base instruction set (I), integer multiplication and division (M), atomic instructions (A), single-precision floating-point (F), CSR instructions (Zicsr), and instruction-fetch fence (Zifencei).
+它表示具有基本指令集 （I）、整数乘法和除法 （M）、原子指令 （A）、单精度浮点 （F）、CSR 指令 （Zicsr） 和指令获取栅栏 （Zifencei） 的 32 位 RISC-V。
 
-## Customizing the CPU
+## 自定义 CPU
 
-There are additional parameters you can pass to the CPU while creating it in the .repl file.
-All of these are optional.
+在 .repl 文件中创建 CPU 时，您可以向 CPU 传递其他参数。所有这些都是可选的。
 
-- `timeProvider` - sets the peripheral to be used as the time provider for the CPU, which is used to populate the `time` CSR. Typically you would provide your instance of the `clint` interrupt controller
-- `privilegedArchitecture` - selects which version of the Privileged Architecture the CPU should follow. The default is 1.11. Available values are:
+- `timeProvider` - 设置要用作 CPU 时间提供程序的外围设备，用于填充`时间` CSR。通常，您将提供 `clint` 中断控制器的实例
+- `privilegedArchitecture` - 选择 CPU 应遵循的特权架构版本。默认值为 1.11。可用值为：
   - `PrivilegedArchitecture.Priv1_09`
   - `PrivilegedArchitecture.Priv1_10`
   - `PrivilegedArchitecture.Priv1_11`
-  - `PrivilegedArchitecture.Priv1_12` - Currently support for Privileged Architecture v1.12 is experimental and not everything is implemented.
-- `endianness` - specifies the endianness of the CPU, defaulting to little endian
-- `nmiVectorAddress` and `nmiVectorLength` - allow for customizing the non-maskable interrupt vector, if supported by the CPU
-- `allowUnalignedAccesses` - defines if an exception should be raised whenever the software performs an unaligned access on memory. Defaults to `false`
-- `interruptMode` - Allows you to enforce interrupt handling mode. Defaults to auto. Available modes:
-  - Auto (0) - Checks `mtvec`'s LSB to detect the mode
-  - Direct (1) - All exceptions set `PC` to `mtvec`'s `BASE` value
-  - Vectored (2) - Asynchronous interrupts set `PC` to `mtvec`'s `BASE + 4 * cause`
-- `privilegeLevels` - specifies implemented privilege levels of the CPU. The default is Machine, Supervisor and User modes. Available values are:
-  - `PrivilegeLevels.Machine`
+  - `PrivilegedArchitecture.Priv1_12` - 目前对特权架构 v1.12 的支持是实验性的，并非所有支持都已实现。
+- `endianness` - 指定 CPU 的字节序，默认为 little endian
+- `nmiVectorAddress` 和 `nmiVectorLength` - 允许自定义不可屏蔽的中断向量（如果 CPU 支持）
+- `allowUnalignedAccesses` - 定义每当软件对内存执行非对齐访问时是否应引发异常。默认为 `false`
+- `interruptMode` - 允许您强制执行中断处理模式。默认为 auto。可用模式：
+  - Auto （0） - 检查 `mtvec` 的 LSB 以检测模式
+  - 直接 （1） - 所有异常都将 `PC` 设置为 `mtvec` 的 `BASE` 值
+  - 矢量 （2） - 异步中断将 `PC` 设置为 `mtvec` 的 `BASE + 4 * 原因`
+- `privilegeLevels` - 指定 CPU 的已实施权限级别。默认值为 Machine、Supervisor 和 User 模式。可用值为：
   - `PrivilegeLevels.MachineUser`
   - `PrivilegeLevels.MachineSupervisorUser`
 
-## Adding a custom RISC-V instruction
+## 添加自定义 RISC-V 指令
 
-One of the most important features of RISC-V is its customizability, also with non-standard instructions.
+RISC-V 最重要的特点之一是它的可定制性，也带有非标准指令。
 
-There are several ways in which a custom instruction can be added to a RISC-V CPU in Renode.
+有几种方法可以将自定义指令添加到 Renode 中的 RISC-V CPU。
 
-They all revolve around two arguments
-- Pattern - A bit pattern which specifies which instructions to match to execute your custom handler. Characters `1` and `0` denote which bit has to be set in that position, while any other character means "any value". The pattern has to have a length of 64, 32, or 16 characters.
-- Handler - The code to execute when the pattern matches
+它们都围绕着两个论点
+- Pattern - 一个位模式，指定要匹配哪些指令来执行您的自定义处理程序。字符 `1` 和 `0` 表示必须在该位置设置哪个位，而任何其他字符表示“任何值”。模式的长度必须为 64、32 或 16 个字符。
+- Handler - 模式匹配时要执行的代码
 
 ### Python
 
-You can use a {ref}`Python script <python-riscv>` for handling custom instructions by using the `InstallCustomInstructionHandlerFromString` or `InstallCustomInstructionHandlerFromFile` methods present on RISC-V CPUs.
+您可以使用 {ref}`Python script <python-riscv>`通过 RISC-V CPU 上的 `InstallCustomInstructionHandlerFromString` or `InstallCustomInstructionHandlerFromFile` 方法处理自定义指令。
 
-For example:
+ 例如：
 ```
 sysbus.cpu InstallCustomInstructionHandlerFromString "10110011100011110000111110000010" "cpu.DebugLog('custom instruction executed!')"
 ```
-The Python script has the `instruction` variable available, which contains the opcode of the instruction that was called.
+
+Python 脚本具有 `instruction 变量 available`，其中包含所调用指令的作码。
 
 ### C#
 
-You can use a C# function for handling custom instruction by using the `InstallCustomInstruction` method. It takes the same pattern argument, but the handler argument is `Action<UInt64>`
+您可以通过 `InstallCustomInstruction` 方法使用 C# 函数来处理自定义指令。它采用相同的 pattern 参数，但 handler 参数是 `Action<UInt64>`
 
 ```csharp
 public class MyCustomRiscV : RiscV32
@@ -137,41 +133,39 @@ public class MyCustomRiscV : RiscV32
 ```
 
 
-### Verilated Custom Function Units
+### 经过验证的自定义函数单元
 
-You can connect up to 4 CFUs to every RISC-V core that's simulated in Renode.
+您最多可以将 4 个 CFU 连接到在 Renode 中模拟的每个 RISC-V 内核。
 
-After you've compiled your CFU with the Cosimulation Library (see: [Example CFU project](https://github.com/antmicro/renode-verilator-integration/blob/master/samples/cfu_mnv2/README.md)) you can attach the CFU to your CPU.
+使用协同仿真库编译 CFU 后（请参阅： [示例 CFU 项目](https://github.com/antmicro/renode-verilator-integration/blob/master/samples/cfu_mnv2/README.md) ），您可以将 CFU 附加到 CPU。
 
-To do so, add this line to your .repl:
+为此，请将此行添加到您的 .repl 中：
 ```
 cfu0: CoSimulated.CoSimulatedCFU @ cpu 0
 ```
-and this line to your .resc:
+并将这一行添加到您的 .resc 中：
 ```
 cpu.cfu0 SimulationFilePathLinux @<PATH_TO_COMPILED_CFU_BINARY>
 ```
 
-If you're on Windows as opposed to Linux you must use `SimulationFilePathWindows`, and respectively `SimulationFilePathMacOS` on macOS.
-Instructions referencing your CFU will then be forwarded to the Verilated CFU.
+如果您使用的是 Windows 而不是 Linux，则必须在 macOS 上使用 `SimulationFilePathWindows` 和 `SimulationFilePathMacOS`。然后，引用您的 CFU 的说明将被转发到 Verilated CFU。
 
-All CFU instructions follow this pattern: `FFFFFFFAAAAABBBBBIIICCCCCNN01011`
-- `N` - CFU number to forward the instruction call to
-- `C` - Register in which the resulting value will be placed
-- `I`, `F` - Function ID. The final ID that's passed to the CFU is `FFFFFFFIII`
-- `B` - Source register 1. Its value will be read and passed into the CFU
-- `A` - Source register 2. Same as the above
+所有 CFU 指令都遵循以下模式： `FFFFFFFAAAAABBBBBIIICCCCCNN01011`
+- `N` - 将指令调用转发到的 CFU 编号
+- `C` - 将放置结果值的寄存器
+- `I`, `F` - 函数 ID。传递给 CFU 的最终 ID 是 `FFFFFFFIII`
+- `B` - 源寄存器 1。其值将被读取并传递到 CFU 中
+- `A` - 源寄存器 2。同上
 
-## Adding a custom RISC-V Control and Status Register
+## 添加自定义 RISC-V 控制和状态寄存器
 
-In a similar fashion to custom instructions, you can also define custom CSRs.
+与自定义指令类似，您还可以定义自定义 CSR。
 
 ### Python
 
-To use a {ref}`Python script <python-riscv>` to handle your custom CSR you can use `RegisterCSRHandlerFromString` and `RegisterCSRHandlerFromFile`.
-The first argument is the CSR ID, while the second refers to the handler script.
+要使用 {ref}`Python script <python-riscv>` 处理自定义 CSR，您可以使用 `RegisterCSRHandlerFromString` 和 `RegisterCSRHandlerFromFile`。第一个参数是 CSR ID，而第二个参数是指处理程序脚本。
 
-The script gets passed a `request` variable, which contains fields `isRead`, `isWrite`, and `value`.
+该脚本将传递一个`请求`变量，该变量包含字段 `isRead`、`isWrite` 和 `value`。
 
 ```python
 if request.isRead: # If the CPU tries to read your CSR, isRead will be True
@@ -182,10 +176,9 @@ elif request.isWrite: # Otherwise isWrite will be True and value will contain th
 
 ### C#
 
-To use C# functions to handle custom CSRs you can use the `RegisterCSR` method.
-Similarly it takes the ID as the first argument, but then takes the read handler and the write handler separately, in that order.
+要使用 C# 函数处理自定义 CSR，您可以使用 `RegisterCSR` 方法。同样，它将 ID 作为第一个参数，但随后按此顺序分别获取读取处理程序和写入处理程序。
 
-Let's take the previously defined custom RISC-V CPU and add a custom CSR to it which will return a random value every time it's read.
+让我们采用之前定义的自定义 RISC-V CPU 并向其添加自定义 CSR，每次读取时都会返回一个随机值。
 
 ```csharp
 public class MyCustomRiscV : RiscV32

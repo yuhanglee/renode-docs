@@ -1,20 +1,20 @@
-# Testing Zephyr PTP support
+# 测试 Zephyr PTP 支持
 
-This tutorial will guide you on how to use Renode to run a set of tests verifying Zephyr's [TSN/PTP support](https://en.wikipedia.org/wiki/Precision_Time_Protocol).
+本教程将指导您如何使用 Renode 运行一组测试，以验证 Zephyr 的 [TSN/PTP 支持](https://en.wikipedia.org/wiki/Precision_Time_Protocol) 。
 
-## Prerequisites
+## 先决条件
 
-To start the test you need to download and build Renode according to the {doc}`../advanced/building_from_sources`.
+要开始测试，您需要根据 {doc}`../advanced/building_from_sources` 下载并构建 Renode。
 
-The test suite is using [Robot Framework](https://robotframework.org/) and can be run with a single script.
+该测试套件使用 [Robot Framework](https://robotframework.org/)，可以使用单个脚本运行。
 
-To create your own Zephyr binaries to be tested, you need to follow [Zephyr's Getting Started Guide](https://docs.zephyrproject.org/latest/getting_started/index.html).
+要创建您自己的 Zephyr 二进制文件进行测试，您需要遵循 [Zephyr 的入门指南](https://docs.zephyrproject.org/latest/getting_started/index.html) 。
 
-The tests require two Zephyr ELF files built from the `zephyr/samples/net/gptp` sample, targeting the `sam_e70_xplained` board.
+这些测试需要两个从 `zephyr/samples/net/gptp` 示例构建的 Zephyr ELF 文件，以 `sam_e70_xplained` 板为目标。
 
-To build them, create two overlay files, one for the Grand Master node, one for the slave.
+要构建它们，请创建两个覆盖文件，一个用于 Grand Master 节点，一个用于 slave 节点。
 
-Config for the Grand Master (gm.conf):
+Grand Master 的配置 （gm.conf）：
 
     CONFIG_NET_GPTP_GM_CAPABLE=y
     CONFIG_ETH_SAM_GMAC_RANDOM_MAC=y
@@ -23,7 +23,7 @@ Config for the Grand Master (gm.conf):
     CONFIG_NET_CONFIG_MY_IPV6_ADDR="2001:db8::1"
     CONFIG_NET_GPTP_NEIGHBOR_PROP_DELAY_THR=200000
 
-Config for the slave node (slave.conf):
+从属节点 （slave.conf） 的配置：
 
     CONFIG_NET_GPTP_GM_CAPABLE=n
     CONFIG_ETH_SAM_GMAC_RANDOM_MAC=y
@@ -32,32 +32,29 @@ Config for the slave node (slave.conf):
     CONFIG_NET_CONFIG_MY_IPV6_ADDR="2001:db8::2"
     CONFIG_NET_GPTP_NEIGHBOR_PROP_DELAY_THR=200000
 
-Follow the Zephyr documentation to build these samples.
-For example, to build the Grand Master application, run:
+按照 Zephyr 文档构建这些示例。例如，要构建 Grand Master 应用程序，请运行：
 
     west build --board sam_e70_xplained -- -DOVERLAY_CONFIG=gm.conf
 
-## The test suite
+## 测试套件
 
-The suite executes a set of tests running on two SAM E70 nodes, connected via ethernet. The following tests are implemented:
+该套件执行在两个 SAM E70 节点上运行的一组测试，这些节点通过以太网连接。将实施以下测试：
 
-* node should send a PDelay request packet
-* slave node should accept a Grand Master node by calling a specific Zephyr callback
-* master node should send Announce packets with expected parameters
-* master node should send properly formed Sync and Sync Follow Up packets
-* master node should send Sync packets in valid intervals
-* slave node should sync its clock to master
+* 节点应发送 PDelay 请求数据包
+* 从属节点应通过调用特定的 Zephyr 回调来接受 Grand Master 节点
+* 主节点应发送带有预期参数的 Announce 数据包
+* 主节点应发送格式正确的 Sync 和 Sync Follow Up 数据包
+* 主节点应以有效的间隔发送 Sync 数据包
+* 从 节点 应将其时钟同步到 主节点
 
-### Running the test
+### 运行测试
 
-To start the test, simply run the following command from the Renode root directory:
+要开始测试，只需从 Renode 根目录运行以下命令：
 
     renode-test tests/platforms/SAME70.robot
 
-This will run the whole suite of tests.
-After the test is finished, the result will be stored in `output/tests/report.html`.
+这将运行整套测试。测试完成后，结果将存储在 `output/tests/report.html` 中。
 
-To switch the binaries used in these tests, edit the provided `.robot` file.
-Alternatively, if you don't want to make any changes, you can use the `--variable` switch to specify the files you want to use:
+要切换这些测试中使用的二进制文件，请编辑提供的 `.robot` 文件。或者，如果您不想进行任何更改，可以使用 `--variable` 开关来指定要使用的文件：
 
     renode-test --variable ZEPHYR_MASTER_ELF:path/to/zephyr.elf --variable ZEPHYR_SLAVE_ELF:path/to/another/zephyr.elf tests/platforms/SAME70.robot

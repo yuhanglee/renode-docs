@@ -1,120 +1,111 @@
-# Execution tracing in Renode
+# Renode 中的执行跟踪
 
-Renode has complete awareness of the internal state of all simulated components and can use this information to trace the execution of unmodified binaries without any behavioral changes to the simulation.
+Renode 完全了解所有模拟组件的内部状态，并且可以使用此信息来跟踪未修改的二进制文件的执行，而无需对模拟进行任何行为更改。
 
 ```{note}
-Some logging features may significantly impact the simulation's performance, but they do not affect the execution itself.
+某些日志记录功能可能会显著影响模拟的性能，但不会影响执行本身。
 ```
 
 ```{note}
-Commands listed below assume that you have a platform loaded, a CPU node named `cpu` and that the `using sysbus` command was executed.
-For more details, see documentation chapters on [Renode Script syntax](renode-script-syntax) and [Accessing and manipulating peripherals](accessing-and-manipulating-peripherals).
+下面列出的命令假定您加载了一个平台、一个名为 `cpu` 的 CPU 节点，并且执行了 `using sysbus` 命令。有关更多详细信息，请参阅有关 [Renode Script 语法](renode-script-syntax)和[访问和作外围设备](accessing-and-manipulating-peripherals)的文档章节。
 ```
 
-## Logging executed function names
+## 记录已执行的函数名称
 
-Renode can log the names of functions currently executed by the guest application.
-This requires you to use the `sysbus LoadELF @path/to/elf` command to [load your application](../basic/machines.md#loading-binaries) or `sysbus LoadSymbolsFrom @path/to/elf` if you prefer executing a binary or a hex file.
-Function name logging can be enabled using:
+Renode 可以记录 guest 应用程序当前执行的函数的名称。这要求您使用 `sysbus LoadELF @path/to/elf` 命令来[加载您的应用程序](https://renode.readthedocs.io/en/latest/basic/machines.html#loading-binaries) ，或者 `sysbus LoadSymbolsFrom @path/to/elf` 如果您更喜欢执行二进制或十六进制文件。可以使用以下方法启用函数名称日志记录：
 
 ```none
 cpu LogFunctionNames true
 ```
 
-You can disable function name logging using:
+您可以使用以下方法禁用函数名称日志记录：
 
 ```none
 cpu LogFunctionNames false
 ```
 
 ```{note}
-You can also add another `true` at the end of this command to remove duplicate function names from subsequent code blocks and achieve better overall performance.
+您还可以在此命令的末尾添加另一个 `true`，以从后续代码块中删除重复的函数名称并获得更好的整体性能。
 ```
 
-To filter function names based on a prefix, add the prefix as a string at the end of the function:
+要根据前缀筛选函数名称，请在函数末尾添加前缀作为字符串：
 
 ```none
 cpu LogFunctionNames true "uart"
 ```
 
-To use more than one prefix and log functions that start with either of these two prefixes, simply separate them with a space:
+要使用多个前缀和以这两个前缀中的任何一个开头的 log 函数，只需用空格分隔它们即可：
 
 ```none
 cpu LogFunctionNames true "uart irq"
 ```
 
 ```{note}
-Renode will try to demangle C++ function names.
-It will also use the names stored in the ELF file.
+Renode 将尝试解缠 C++ 函数名称。它还将使用存储在 ELF 文件中的名称。
 ```
 
-If you want to learn more about logging executed function names in Renode, visit the [Using the logger chapter](../basic/logger.md)
+如果您想了解有关在 Renode 中记录已执行函数名称的更多信息，请访问[使用 logger 一章](../basic/logger.md)
 
-## Logging peripheral accesses
+## 记录外围设备访问
 
-While the information about the executed functions gives you an overall understanding of the execution, it is often beneficial to know the additional context and understand why the application took a specific path.
+虽然有关已执行函数的信息可以让您全面了解执行情况，但了解其他上下文并了解应用程序为何采用特定路径通常是有益的。
 
-To provide this additional context, Renode can log access to peripherals.
-This feature allows you to see how your program uses or doesn't use specific parts of the SoC.
+为了提供这个额外的上下文，Renode 可以记录对外围设备的访问。此功能允许您查看程序如何使用或不使用 SoC 的特定部分。
 
-You can enable this feature by using the following:
+您可以使用以下方法启用此功能：
 
 ```none
 sysbus LogPeripheralAccess <peripheral-name> true
 ```
 
 ```{note}
-In most cases, your peripheral names need a prefix `sysbus` like `sysbus.uart0`.
-You can omit this prefix if you're using the `using sysbus` command in your script.
+在大多数情况下，您的外围设备名称需要一个前缀 `sysbus`，例如 `sysbus.uart0`。如果您在脚本中使用 `using sysbus` 命令，则可以省略此前缀。
 ```
 
-The logs contain:
+日志包含：
 
-- the name of the peripheral
-- current value of the program counter
-- type and width of the access
-- offset of the access (relative to the peripheral's base address) and the name of the register that this offset maps to
-- the value that was either loaded to or returned from the register
+- 外围设备的名称
+- 程序计数器的当前值
+- 访问的类型和宽度
+- 访问的偏移量（相对于外设的基址）和此偏移量映射到的寄存器的名称
+- 加载到 register 或从 register 返回的值
 
-You can also log accesses to all peripherals connected to the system bus:
+您还可以记录对连接到系统总线的所有外围设备的访问：
 
 ```none
 sysbus LogAllPeripheralsAccess true
 ```
 
-You can disable both peripheral access logging commands by providing `false` instead of `true` as the last parameter:
+您可以通过提供 `false` 而不是 `true` 作为最后一个参数来禁用这两个外围设备访问日志记录命令：
 
 ```none
 sysbus LogAllPeripheralsAccess false
 ```
 
-If you want to learn more about logging peripheral accesses in Renode, visit the [Using the logger chapter](../basic/logger.md)
+如果您想了解有关在 Renode 中记录外围设备访问的更多信息，请访问[使用 logger 一章](../basic/logger.md)
 
-## Execution tracing
+## 执行跟踪
 
-In Renode, you can see what the CPU does at any given time without changing the code or using specialized hardware.
-To enable execution tracing, use:
+在 Renode 中，您可以查看 CPU 在任何给定时间执行的作，而无需更改代码或使用专用硬件。要启用执行跟踪，请使用：
 
 ```none
 cpu CreateExecutionTracing "tracer_name" @path-to-file <mode>
 ```
 
-Additionally, you can use the tracer to track memory accesses.
-To do so, type:
+此外，您还可以使用跟踪器来跟踪内存访问。为此，请键入：
 
 ```none
 tracer_name TrackMemoryAccesses
 ```
 
-Similarly, to track vector configuration for the RISC-V architecture, use:
+同样，要跟踪 RISC-V 架构的向量配置，请使用：
 
 ```none
 tracer_name TrackVectorConfiguration
 ```
 
-`mode` can be one of the following values:
-- `PC` - this mode saves all program counter values.
-Example:
+`mode` 可以是以下值之一：
+- `PC` - 此模式保存所有程序计数器值。例：
 
 ```
 0x20400000
@@ -125,8 +116,7 @@ Example:
 0x20401bc8
 ...
 ```
-- `Opcode` - this mode saves all executed opcodes.
-Example:
+- `Opcode` - 此模式保存所有已执行的作码。例：
 
 ```
 0x0297
@@ -137,8 +127,7 @@ Example:
 0x88C28293
 ...
 ```
-- `PCAndOpcode` - this mode saves program counter values and the corresponding opcode that was executed.
-Example:
+- `PCAndOpcode` - 此模式保存程序计数器值和执行的相应作码。例：
 
 ```
 0x20400000: 0x0297
@@ -149,9 +138,7 @@ Example:
 0x20401bc8: 0x88C28293
 ...
 ```
-- `Disassembly` - in addition to the value of the program counter and the corresponding opcode, this mode uses a built-in LLVM-based disassembler to convert opcodes to human-readable instruction names with all of the used arguments.
-The output also includes the name of the symbol that this entry belongs to.
-Example:
+- `反汇编` - 除了程序计数器的值和相应的作码外，此模式还使用内置的基于 LLVM 的反汇编器将作码转换为具有所有使用参数的人类可读指令名称。输出还包括此条目所属的元件的名称。例：
 
 ```
 0x20400000:   00000297  auipc t0, 0           [vinit (entry)]
@@ -163,47 +150,43 @@ Example:
 ...
 ```
 
-You can save the output from the `PC`, `Opcode`, and `PCAndOpcode` modes to a binary format that can optionally be compressed.
-This format is faster to encode and produces smaller output files.
-To save to a binary file, use the following:
+您可以将 `PC`、`Opcode` 和 `PCAndOpcode` 模式的输出保存为可以选择压缩的二进制格式。这种格式的编码速度更快，并生成更小的输出文件。要保存到二进制文件，请使用以下命令：
 
 ```none
 cpu CreateExecutionTracing "tracer_name" @path-to-file <mode> true
 ```
 
-If you also want to compress the output, you can add another `true` to this command:
+如果你还想压缩输出，你可以向此命令添加另一个 `true`：
 
 ```none
 cpu CreateExecutionTracing "tracer_name" @path-to-file <mode> true true
 ```
 
-You can view the content of the binary file by using a script bundled with Renode.
-It can be invoked by running this command in your shell:
+您可以使用与 Renode 捆绑的脚本查看二进制文件的内容。可以通过在 shell 中运行以下命令来调用它：
 
 ```sh
 python3 <renode>/tools/execution_tracer/execution_tracer_reader.py inspect path-to-dump-file
 ```
 
-This command will print the file's text content to the standard output.
+此命令会将文件的文本内容打印到标准输出。
 
-To disable execution tracing, simply use:
+要禁用执行跟踪，只需使用：
 
 ```none
 cpu DisableExecutionTracing
 ```
 
-## Usage of gathered data
+## 使用收集的数据
 
-Certain tools shipped with Renode can use the obtained execution traces for post-mortem analysis of a program's execution.
-These include:
-* the [Coverage Report Generator](./coverage-report.md) which can be used to generate code coverage reports,
-* the [Guest CPU Cache Modelling tool](./guest-cache-modelling.md) which simulates CPU caches and generates usage statistics.
+Renode 附带的某些工具可以使用获取的执行跟踪对程序的执行进行事后分析。这些包括：
+*  [Coverage Report Generator](./coverage-report.md) 可用于生成代码覆盖率报告，
+*  [Guest CPU Cache Modelling tool](./guest-cache-modelling.md) 用于模拟 CPU 缓存并生成使用情况统计信息。
 
-## Specialized uses of execution tracing
+## 执行跟踪的特殊用途
 
-In addition to generic program execution tracing, Renode also has more specialized tracing-related facilities, such as:
-* [counting executed opcodes](./metrics-and-profiling.md#opcode-counting)
-* [generating interactive flamegraphs of the guest's execution trace](./metrics-and-profiling.md#guest-application-profiling)
-* [obtaining execution metrics](../basic/metrics.md)
+除了通用的程序执行跟踪之外，Renode 还具有更专业的跟踪相关工具，例如：
+* [对执行的作码进行计数](./metrics-and-profiling.md#opcode-counting)
+* [生成客户机执行跟踪的交互式火焰图](./metrics-and-profiling.md#guest-application-profiling)
+* [获取执行指标](../basic/metrics.md)
 
-Refer to the [Execution metrics, profiling and opcode counting](./metrics-and-profiling.md) section for more details.
+有关更多详细信息 [，请参阅 执行指标、分析和作码计数](./metrics-and-profiling.md) 部分。

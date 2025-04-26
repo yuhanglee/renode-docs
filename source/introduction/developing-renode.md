@@ -1,105 +1,102 @@
-# Developing Renode
+# 开发 Renode
 
-Renode has many built-in features to enable debugging of embedded software, e.g. [debugging with GDB](../debugging/gdb.md), but sometimes you might be interested in debugging Renode itself, especially if you are involved in its development
+Renode 具有许多内置功能来支持嵌入式软件的调试，例如 [使用 GDB 进行调试](../debugging/gdb.md) ，但有时您可能对调试 Renode 本身感兴趣，特别是如果您参与其开发
 
-## Debugging with GDB
+## 使用 GDB 进行调试
 
-To start debugging Renode and its components using [GDB](https://www.sourceware.org/gdb/), follow these steps:
+要使用 [GDB](https://www.sourceware.org/gdb/) 开始调试 Renode 及其组件，请执行以下步骤：
 
-1. Build Renode in debug configuration.
+1. 在 debug 配置中构建 Renode。
 
     ```bash
     ./build.sh -d
     ```
 
-1. Launch Renode using Mono with the debugger enabled.
+1. 在启用调试器的情况下使用 Mono 启动 Renode。
 
     ```bash
     ./renode -d
     ```
 
-1. Connect to Renode via the Mono debugger, e.g. [using VS Code](#vs-code-configurations)
+1. 通过 Mono 调试器连接到 Renode，例如 [using VS Code](#vs-code-configurations)
 
-1. Attach GDB to a running Renode process to also debug implementation of cores (in C via GDB).
-    GDB requires specific commands due to Mono using signals for flow control. 
-    The most important command is:
+1. 将 GDB 附加到正在运行的 Renode 进程，以调试内核的实现（通过 GDB 在 C 语言中）。由于 Mono 使用信号进行流控制，因此 GDB 需要特定的命令。最重要的命令是：
 
     ```
     handle SIGXCPU SIG33 SIG35 SIG36 SIG37 SIGPWR nostop noprint
     ```
+
+
 (vs-code-configurations)=
 
-## VS Code configurations
+## VS Code 配置
 
-Visual Studio Code's extensive plugin ecosystem provides a good developer experience for working with the Renode codebase.
-You may decide to use either the official [VS Code](https://code.visualstudio.com/) app from Microsoft or use one of the OSS binary releases [VSCodium](https://github.com/VSCodium/vscodium) or [code-server](https://github.com/coder/code-server).
-The main difference between the official and OSS releases is that they use different extensions gallery, so some extensions may be unavailable for each version.
+Visual Studio Code 广泛的插件生态系统为使用 Renode 代码库提供了良好的开发人员体验。您可以决定使用 Microsoft 的官方 [VS Code](https://code.visualstudio.com/) 应用程序，也可以使用 OSS 二进制版本 [VSCodium](https://github.com/VSCodium/vscodium) 或 [code-server](https://github.com/coder/code-server) 之一。官方版本和 OSS 版本的主要区别在于它们使用不同的扩展库，因此某些扩展可能不适用于每个版本。
 
-When launching Renode in VS Code, you can use several ready-to-use configurations (as defined in the [`launch.json` file](https://github.com/renode/renode/blob/master/.vscode/launch.json)):
+在 VS Code 中启动 Renode 时，您可以使用几个现成的配置（如 [`launch.json` 文件中](https://github.com/renode/renode/blob/master/.vscode/launch.json)所定义）：
 
-* `Launch - Release` - equivalent to running `./build.sh` and `./renode` from the console.
-* `Launch - Debug` - builds Renode in the `Debug` configuration (`./build.sh -d`) and launches it under the Mono debugger.
-* `(gdb) Tlib Attach` - required to connect to a previously launched instance of Renode via GDB to debug translation libraries (implementation of emulated cores).
+* `Launch - Release` - 相当于从控制台运行 `./build.sh` 和 `./renode`。
+* `Launch - Debug` - 在 `Debug` 配置 （`./build.sh -d`） 中构建 Renode，并在 Mono 调试器下启动它。
+* `(gdb) Tlib Attach` - 需要通过 GDB 连接到之前启动的 Renode 实例，以调试转换库（模拟内核的实现）。
 
-These configurations require the following VS Code extensions:
+这些配置需要以下 VS Code 扩展：
 
 * [ms-dotnettools.csdevkit](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csdevkit)
 * [ms-vscode.mono-debug](https://marketplace.visualstudio.com/items?itemName=ms-vscode.mono-debug)
 * [ms-vscode.cpptools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools)
 
-### Launching Renode and debugging
+### 启动 Renode 并调试
 
-By following the steps below, you will be able to add regular breakpoints in Renode, both in C# and C code.
+按照以下步骤，您将能够在 Renode 中添加常规断点，包括 C# 和 C 代码。
 
-1. Use the `Launch - Debug` configuration.
-It may take a while, as it builds Renode in the debug configuration.
+1. 使用 `Launch - Debug` 配置。
+这可能需要一段时间，因为它会在 debug 配置中构建 Renode。
 
-1. When Renode starts, load the platform with a CPU whose code you wish to debug.
+1. 当 Renode 启动时，使用要调试其代码的 CPU 加载平台。
 
-1. Use the `(gdb) Tlib Attach` configuration to connect with GDB. 
+1. 使用 `（gdb） Tlib Attach` 配置与 GDB 连接。
 
-1. Once started, a popup will appear. In the popup, type in `mono`.
+1. 启动后，将出现一个弹出窗口。在弹出窗口中，键入 `mono`。
 
-1. From the drop-down list, select the option beginning with `/usr/bin/mono --debug --debuger-agent=...`, as highlighted in the screenshot below.
+1. 从下拉列表中，选择以 开头的选项 `/usr/bin/mono --debug --debuger-agent=...` ，如下面的屏幕截图中突出显示的那样。
 
 :::{figure-md}
-![VSCode Mono drop-down list](img/mono.png)
+![VSCode Mono 下拉列表](img/mono.png)
 
 VSCode Mono drop-down list
 :::
 
-### Useful VS Code extensions
+### 有用的 VS Code 扩展
 
-Below, you can find a list of VS Code extensions that may prove useful when working with Renode:
+下面，您可以找到在使用 Renode 时可能有用的 VS Code 扩展列表：
 
-* Description
+* 描述
     * [Open VSX Registry](https://open-vsx.org/)
     * [Visual Studio Marketplace](https://marketplace.visualstudio.com/)
-* C# support (code completion and debugging)
+* C# 支持（代码完成和调试）
     * [muhammad-sammy.csharp](https://open-vsx.org/extension/muhammad-sammy/csharp)
     * [ms-dotnettools.csdevkit](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csdevkit)
 * Mono debugger
     * [ms-vscode.mono-debug on Open VSX](https://open-vsx.org/extension/ms-vscode/mono-debug)
     * [ms-vscode.mono-debug on VS Marketplace](https://marketplace.visualstudio.com/items?itemName=ms-vscode.mono-debug)
-* C support (code completion and debugging)
+* C 支持（代码完成和调试）
     * [llvm-vs-code-extensions.vscode-clangd](https://open-vsx.org/extension/llvm-vs-code-extensions/vscode-clangd) and [vadimcn.vscode-lldb](https://open-vsx.org/extension/vadimcn/vscode-lldb)
     * [ms-vscode.cpptools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools)
-* CMake support (for standalone Tlib building)
+* CMake 支持（用于独立的 Tlib 构建）
     * [ms-vscode.cmake-tools on Open VSX](https://open-vsx.org/extension/ms-vscode/cmake-tools)
     * [ms-vscode.cmake-tools on VS Marketplace](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cmake-tools)
-* Python support
+* Python 支持
     * [ms-python.python on Open VSX](https://open-vsx.org/extension/ms-python/python)
     * [ms-python.python on VS Marketplace](https://marketplace.visualstudio.com/items?itemName=ms-python.python)
-* Robot Framework language server
+* Robot Framework 语言服务器
     * [robocorp.robotframework-lsp on Open VSX](https://open-vsx.org/extension/robocorp/robotframework-lsp)
     * [robocorp.robotframework-lsp on VS Marketplace](https://marketplace.visualstudio.com/items?itemName=robocorp.robotframework-lsp)
-* Debugging embedded targets with Renode's GDB server
+* 使用 Renode 的 GDB 服务器调试嵌入式目标
     * [marus25.cortex-debug on Open VSX](https://open-vsx.org/extension/marus25/cortex-debug) and [webfreak.debug on Open VSX](https://open-vsx.org/extension/webfreak/debug)
     * [marus25.cortex-debug on VS Marketplace](https://marketplace.visualstudio.com/items?itemName=marus25.cortex-debug) and [webfreak.debug on VS Marketplace](https://marketplace.visualstudio.com/items?itemName=webfreak.debug)
 
 :::{note}
 
-Some of these extensions may require additional configuration depending on your machine's setup.
-[Tlib](https://github.com/antmicro/tlib/blob/master/CMakeLists.txt) should be first built with CMake to generate the `compile_commands.json` file for `clangd` language services.
+其中一些扩展可能需要额外的配置，具体取决于您计算机的设置。 [Tlib](https://github.com/antmicro/tlib/blob/master/CMakeLists.txt) 应该首先使用 CMake 构建，以生成 `clangd` 语言服务的 `compile_commands.json` 文件。
 
 :::

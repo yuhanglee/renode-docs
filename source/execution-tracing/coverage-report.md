@@ -1,32 +1,30 @@
-# Generating a coverage report
+# 生成覆盖率报告
 
-Renode offers many execution tracing features, as described in the [Execution tracing](./execution-tracing.md#execution-tracing) section, and allows you to dump the entire execution of a binary into a single file.
-With an execution trace of a properly built binary and a dedicated script, you can create a code coverage report.
+Renode 提供了许多执行跟踪功能，如[执行跟踪](./execution-tracing.md#execution-tracing)部分所述，并允许您将二进制文件的整个执行转储到单个文件中。使用正确构建的二进制文件和专用脚本的执行跟踪，您可以创建代码覆盖率报告。
 
-[The script](https://github.com/renode/renode/blob/master/tools/execution_tracer/execution_tracer/execution_tracer_reader.py) combines data in [the DWARF format](https://dwarfstd.org/) (debug information available in ELF files which are typically used to load software to Renode) with the number of executions of each instruction counted by Renode.
-The following tutorial will walk you through the steps necessary to generate such a report in Renode.
+[该脚本](https://github.com/renode/renode/blob/master/tools/execution_tracer/execution_tracer/execution_tracer_reader.py)将 [DWARF 格式](https://dwarfstd.org/)的数据（通常用于将软件加载到 Renode 的 ELF 文件中可用的调试信息）与 Renode 计数的每条指令的执行次数相结合。以下教程将引导您完成在 Renode 中生成此类报告所需的步骤。
 
-## Prerequisites
+## 先决条件
 
-To generate a report, you need to have Renode installed along with [the execution tracer script](https://github.com/renode/renode/tree/master/tools/execution_tracer).
-On Linux you can simply download a portable package by following [these instructions](https://github.com/renode/renode/blob/master/README.md#using-the-linux-portable-release).
+要生成报告，您需要安装 Renode 以及[执行跟踪器脚本](https://github.com/renode/renode/tree/master/tools/execution_tracer) 。在 Linux 上，您可以按照[这些说明](https://github.com/renode/renode/blob/master/README.md#using-the-linux-portable-release)简单地下载便携式软件包。
 
-It's assumed that you execute the rest of commands in the root directory of the Renode repository. Otherwise, you might need to adjust them accordingly.
+假设您在 Renode 存储库的根目录中执行其余命令。否则，您可能需要相应地调整它们。
 
-To run the script you can install it as a CLI utility, for example using [pipx](https://github.com/pypa/pipx):
+要运行该脚本，您可以将其安装为 CLI 实用程序，例如使用 [pipx](https://github.com/pypa/pipx)：
 
 ```sh
 pipx install tools/execution_tracer/
 ```
-You will then be able to use call:
+
+然后，您将能够使用 call：
+
 ```sh
 renode-retracer --help
 ```
-to see the list of available commands
+查看可用命令的列表
 
-Alternatively, it's possible to invoke the script directly from the Renode directory.
-Let's assume that the variable `RENODE_PATH` points to your Renode installation, or cloned repository.
-First, initialize the virtual environment and install the dependencies:
+或者，可以直接从 Renode 目录调用脚本。假设变量 `RENODE_PATH` 指向您的 Renode 安装或克隆的存储库。
+首先，初始化虚拟环境并安装依赖项：
 
 ```sh
 python3 -m venv .venv
@@ -34,42 +32,33 @@ source .venv/bin/activate
 python3 -m pip install -r ${RENODE_PATH}/tools/execution_tracer/requirements.txt
 ```
 
-Then, you should be able to run:
+然后，您应该能够运行：
 
 ```sh
 python3 ${RENODE_PATH}/tools/execution_tracer/execution_tracer_reader.py --help
 ```
-to see the list of available commands.
+以查看可用命令的列表。
 
 
-## Building a binary for coverage gathering
+## 构建用于覆盖率收集的二进制文件
 
-Renode can trace the execution of a binary built in any way, but to extract coverage information we require a binary with debug information in the DWARF format.
-To provide the best result, it's recommended to use the `-g` and `-O0` (or `-Og`) flags (for GCC) during compilation.
-Please note that different compilers may require different options.
+Renode 可以跟踪以任何方式构建的二进制文件的执行情况，但要提取覆盖率信息，我们需要一个 DWARF 格式的带有调试信息的二进制文件。为了提供最佳结果，建议在编译过程中使用 `-g` 和 `-O0`（或 `-Og`）标志（对于 GCC）。请注意，不同的编译器可能需要不同的选项。
 
-The `-g` switch adds debug information to the binary, specifically code line numbers for each machine instruction.
-The coverage functionality requires that information, and you will see an error if it's missing from the ELF file.
-It's recommended to use the highest available debug level (at this time `-g3`).
+`-g` 开关将调试信息添加到二进制文件中，特别是每个机器指令的代码行号。覆盖率功能需要该信息，如果 ELF 文件中缺少该信息，您将看到错误。建议使用最高可用的调试级别（目前为 `-g3`）。
 
-Using the `-O0` switch to disable all optimizations is strongly recommended.
-The `-Og` switch disables most optimizations and is intended to make the debugging process easier.
+强烈建议使用 `-O0` 开关禁用所有优化。`-Og` 开关会禁用大多数优化，旨在简化调试过程。
 
-Any optimization done by a compiler may prevent redundant lines of code from being executed.
-The compiler might also replicate the same code line across several addresses in the program or reorder the execution flow, which will make obtaining legitimate results impossible.
-For the purpose of generating a coverage report, same as for debugging, it's recommended to execute the code without any optimizations.
-Generating a report for an optimized binary may create imprecise or even unexpected results.
+编译器所做的任何优化都可能阻止执行冗余的代码行。编译器还可能在程序中的多个地址之间复制相同的代码行，或者对执行流重新排序，这将使无法获得合法的结果。为了生成覆盖率报告，与调试相同，建议执行代码而不进行任何优化。为优化的二进制文件生成报告可能会产生不精确甚至意外的结果。
 
-## Gathering coverage for a sample program
+## 收集示例程序的覆盖率
 
-For the purpose for this tutorial, we prepared a sample program consisting of two files.
-The tutorial describes how to gather the execution metrics for this program, running on the emulated [Kendryte K210 RISC-V platform](https://github.com/renode/renode/blob/c5cd6fe6fa33ccbfc2f1f62ff0c87252fd2e5259/platforms/cpus/kendryte_k210.repl).
+在本教程中，我们准备了一个由两个文件组成的示例程序。本教程介绍了如何收集在仿真 [Kendryte K210 RISC-V 平台](https://github.com/renode/renode/blob/c5cd6fe6fa33ccbfc2f1f62ff0c87252fd2e5259/platforms/cpus/kendryte_k210.repl)上运行的该程序的执行指标。
 
 ```{note}
-The pre-built sample and sources are available for download [here](https://dl.antmicro.com/projects/renode/coverage-sample-riscv64.tar).
+预构建的示例和源代码可[在此处](https://dl.antmicro.com/projects/renode/coverage-sample-riscv64.tar)下载。
 ```
 
-The program's sources look as follows:
+该程序的源代码如下所示：
 
 ::::{tab} `main.c`
 ```c
@@ -138,31 +127,29 @@ void funA(int *buf, int b) {
 ```
 ::::
 
-To compile it, first you need to obtain a `riscv64` toolchain.
-Refer to the package repositories of your OS distribution, or compile it yourself from the [sources](https://github.com/riscv-collab/riscv-gnu-toolchain).
+要编译它，首先你需要获取一个 `riscv64` 工具链。请参阅 OS 发行版的软件包存储库，或从[源代码](https://github.com/riscv-collab/riscv-gnu-toolchain)自行编译。
 
 ```{note}
-Hint: You can use prebuilt toolchains, shipped with the [Zephyr SDK](https://docs.zephyrproject.org/latest/develop/toolchains/zephyr_sdk.html#zephyr-sdk-installation).
+提示：您可以使用 [Zephyr SDK](https://docs.zephyrproject.org/latest/develop/toolchains/zephyr_sdk.html#zephyr-sdk-installation) 附带的预构建工具链。
 ```
 
-Then, compile the program with (adjust the compiler name, as needed):
+然后，使用 （根据需要调整编译器名称） 编译程序：
 
 ```sh
 riscv64-unknown-elf-gcc -O0 -g3 main.c additional.c --freestanding -nostdlib -Wl,-emain -o coverage-sample.elf
 ```
 
-The additional flags inform the compiler that we operate in a bare-metal environment, so we don't want to link with the standard libraries.
-They have no impact on the coverage report.
+附加标志通知编译器我们在裸机环境中运行，因此我们不想与标准库链接。它们对覆盖率报告没有影响。
 
-### The platform and tracing the execution
+### 平台和跟踪执行
 
-To trace execution of the binary from the previous section, you can simply use the [pre-prepared RESC script](https://github.com/renode/renode/blob/b509e7c85265e6d203dc632bcd29319ac758308a/scripts/complex/coverage/kendryte_k210_coverage.resc).
+要跟踪上一节中二进制文件的执行情况，您只需使用[预先准备好的 RESC 脚本](https://github.com/renode/renode/blob/b509e7c85265e6d203dc632bcd29319ac758308a/scripts/complex/coverage/kendryte_k210_coverage.resc)即可。
 
 ```{note}
-The script runs a binary pre-built for the Kendryte K210 platform, but the tracing mechanism itself (`CreateExecutionTracing`) is generic and works for all platforms.
+该脚本运行为 Kendryte K210 平台预先构建的二进制文件，但跟踪机制本身 （`CreateExecutionTracing`） 是通用的，适用于所有平台。
 ```
 
-The script is functionally similar to this one:
+该脚本在功能上类似于此脚本：
 ```none
 $bin=$CWD/coverage-sample.elf
 include @scripts/single-node/kendryte_k210.resc
@@ -172,10 +159,9 @@ cpu1 SP 0x1000
 cpu1 CreateExecutionTracing "trace" $CWD/trace.bin.gz PC isBinary=True compress=True
 ```
 
-We focus on a single core and disable the other one.
-We also set the Stack Pointer manually, to simplify the software.
+我们专注于单个内核并禁用另一个内核。我们还手动设置了 Stack Pointer，以简化软件。
 
-You can load the script in Renode, by typing:
+您可以通过键入以下内容在 Renode 中加载脚本：
 
 ```none
 include @scripts/complex/coverage/kendryte_k210_coverage.resc
@@ -184,23 +170,17 @@ emulation RunFor "0.003" # Run 300 000 instructions (default performance is 100M
 quit
 ```
 
-The command above gathers the trace for 0.003 seconds of the guest's time.
-After the execution finishes, close the Renode instance with `quit`.
-The trace will be saved in a binary format to a file named `trace.bin.gz`.
-The file is additionally compressed to reduce size.
+上述命令收集 guest 时间的 0.003 秒跟踪。执行完成后，使用 `quit` 关闭 Renode 实例。跟踪将以二进制格式保存到名为 `trace.bin.gz` 的文件中。该文件还被压缩以减小大小。
 
-The `CreateExecutionTracing` command initializes execution tracing.
-The [Execution tracing](../execution-tracing/execution-tracing.md#execution-tracing) section contains details on configuring the command.
-The script that generates the coverage report requires at least PCs (addresses of executed instructions) to be available in the trace file.
+`CreateExecutionTracing` 命令初始化执行跟踪。 [的 Execution tracing](../execution-tracing/execution-tracing.md#execution-tracing) 部分包含有关配置命令的详细信息。生成覆盖率报告的脚本至少需要 PC（已执行指令的地址）才能在跟踪文件中可用。
 
 ```{note}
-Tracing an additional type of data may cause an increase in the size of the output file.
-It's also recommended to use a binary format and compression by setting the fourth and fifth arguments to `True`, as shown above.
+跟踪其他类型的数据可能会导致输出文件大小增加。此外，还建议通过将第四个和第五个参数设置为 `True` 来使用二进制格式和压缩，如上所示。
 ```
 
-### Generating the report
+### 生成报告
 
-At this point, you can run the script that generates the report:
+此时，您可以运行生成报告的脚本：
 
 ```sh
 renode-retracer coverage trace.bin.gz \
@@ -211,62 +191,50 @@ renode-retracer coverage trace.bin.gz \
 ```
 
 ```{note}
-If no sources are provided using the `--sources` argument, the script will attempt to automatically discover their locations based on the DWARF data extracted from the binary.
+如果未使用 `--sources` 参数提供任何源，则脚本将尝试根据从二进制文件中提取的 DWARF 数据自动发现其位置。
 
-You might need to perform path substitution if the sources' locations have changed from the time when the binary was built (or binaries were built on a different machine).
+如果源的位置与构建二进制文件（或二进制文件是在另一台计算机上构建）相比发生了变化，则可能需要执行路径替换。
 
-To do this, you can use the `--sub-source-path` argument by providing `old_path:new_path` for each pair of paths to be substituted; this argument can be provided multiple times.
+为此，您可以通过为要替换的每对路径提供 `old_path：new_path` 来使用 `--sub-source-path` 参数;此参数可以多次提供。
 ```
 
-By adding `--export-for-coverview` to the command line, the tool can pack an archive, ready to be processed by [Coverview](#coverview-integration) - a tool for generating coverage dashboards.
-For the `main.c` file, the output will look similar to the one shown below.
+通过将 `--export-for-coverview` 添加到命令行，该工具可以打包一个存档，以供 [Coverview](#coverview-integration)（一种用于生成覆盖率仪表板的工具）处理。对于 `main.c` 文件，输出将类似于如下所示。
 
 ![Coverage in Coverview](img/coverview-simple-app.png)
 
-It's also possible to use a format (`.info`) [compatible with LCOV](#report-formats).
-While not as easy to read for a human, it's more easily processed by automated scripts and tools.
+也可以使用[与 LCOV 兼容的](#report-formats)格式 （`.info`）。虽然对人类来说不那么容易阅读，但它更容易被自动化脚本和工具处理。
 
-## Report formats
+## 报告格式
 
-Normally, the script will output the data in a format (`.info`) compatible with [LCOV](https://github.com/linux-test-project/lcov).
-The format is described in the manual pages for `geninfo` (`man geninfo`).
-`renode-retracer` supports generation of line coverage info (`DA`).
-This format can be later used with various third-party tools (e.g. `genhtml`) to display the coverage data.
+通常，脚本将以与 [LCOV](https://github.com/linux-test-project/lcov) 兼容的格式 （`.info`） 输出数据。格式在 `geninfo` （`man geninfo`） 的手册页中进行了介绍。 `renode-retracer` 支持生成线路覆盖信息 （`DA）。` 此格式稍后可以与各种第三方工具（例如 `genhtml`）一起使用，以显示覆盖率数据。
 
-By using the `--export-for-coverview` switch, the data will be packed into an archive, ready to be processed by [Coverview](#coverview-integration).
+通过使用 `--export-for-coverview` 开关，数据将被打包到一个存档中，准备由 [Coverview](#coverview-integration) 处理。
 
-`renode-retracer` also supports a legacy text-based report format for easy result interpretation, as shown in [the last section](#legacy-report-mode).
+`renode-retracer` 还支持传统的基于文本的报告格式，以便于结果解释，如[上一节](#legacy-report-mode)所示。
 
-## Coverview integration
+## Coverview 集成
 
-The execution tracer can export the data in a format which can be directly loaded into Coverview.
-Use the `--export-for-coverview` switch for this and remember to provide an output file name with the `--output filename.zip` option.
+执行跟踪器可以将数据导出为可以直接加载到 Coverview 中的格式。为此，请使用 `--export-for-coverview` 开关，并记住使用 `--output filename.zip` 选项提供输出文件名。
 
-[Coverview](https://github.com/antmicro/coverview) is a tool for generating coverage dashboards.
-The tool runs fully on the client's side, and you can build it locally via `npm` or you can visit a page [deployed on GitHub pages](https://antmicro.github.io/coverview/index.html).
-You can upload the archives obtained from the scenarios presented in this chapter, and investigate the line coverage.
-No uploaded data is stored on the server.
+[Coverview](https://github.com/antmicro/coverview) 是一种用于生成覆盖率仪表板的工具。该工具完全在客户端运行，您可以通过 `npm` 在本地构建它，也可以访问[部署在 GitHub Pages 上的](https://antmicro.github.io/coverview/index.html)页面。您可以上传从本章中介绍的场景获取的档案，并调查线路覆盖率。服务器上不会存储任何上传的数据。
 
-You can then load the archive into the dashboard and browse it file by file.
+然后，您可以将存档加载到控制面板中，并逐个文件浏览它。
 
-## Gathering Zephyr's coverage
+## 收集 Zephyr 的覆盖率
 
-This example uses the script to gather coverage of a Zephyr's app running on an emulated [Nucleo H753ZI](https://docs.zephyrproject.org/latest/boards/st/nucleo_h753zi/doc/index.html).
-Follow along to prepare a test scenario and see how much code is covered by the test.
+此示例使用脚本收集在模拟 [Nucleo H753ZI](https://docs.zephyrproject.org/latest/boards/st/nucleo_h753zi/doc/index.html) 上运行的 Zephyr 应用程序的覆盖率。请按照以下步骤准备测试场景，并查看测试覆盖了多少代码。
 
-First, download Zephyr and set up your environment as described [in the official guide](https://docs.zephyrproject.org/latest/develop/getting_started/index.html).
+首先，下载 Zephyr 并按照[官方指南中的](https://docs.zephyrproject.org/latest/develop/getting_started/index.html)说明设置您的环境。
 
-After following the steps as described in the `Getting Started` section, building a shell sample requires just one command:
+按照 `入门` 部分中描述的步骤作后，构建 shell 示例只需要一个命令：
 
 ```sh
 west build -b nucleo_h753zi zephyr/samples/subsys/shell/shell_module/ -- -DCONFIG_NO_OPTIMIZATIONS=y
 ```
 
-Notice that the optimizations are disabled completely to increase the quality of gathered coverage info.
-Alternatively you could build the sample with just the debug optimizations enabled (`-DCONFIG_DEBUG_OPTIMIZATIONS=y`).
-After running `west` you can find the compiled `zephyr.elf` file in the `build/zephyr/` directory - the shell application for which want to obtain coverage info.
+请注意，优化被完全禁用，以提高收集的覆盖率信息的质量。或者，您也可以在仅启用调试优化的情况下构建示例 （ `-DCONFIG_DEBUG_OPTIMIZATIONS=y` ）。向`西`运行后，您可以在 `build/zephyr/` 目录中找到编译后的 `zephyr.elf` 文件 - 想要获取覆盖率信息的 shell 应用程序。
 
-Below is a deterministic Robot test file that tests the coverage of our case:
+下面是一个确定性的 Robot 测试文件，用于测试我们案例的覆盖范围：
 
 ```robotframework
 *** Test Cases ***
@@ -282,15 +250,13 @@ Should Report Shell Coverage
     Wait For Prompt On Uart   uart:~$
 ```
 
-In this sample, we await the prompt which signals that the shell is ready to receive data.
-Then we query the shell module for the board name, and again await the prompt, after the command finishes.
-Immediately after receiving the response on the UART, the emulation stops, and the execution trace is dumped into the file.
+下面是一个确定性的 Robot 测试文件，用于测试我们案例的覆盖范围：
 
-To run the test, execute `renode-test path/to/test.robot`.
+下面是一个确定性的 Robot 测试文件，用于测试我们案例的覆盖范围：
 
-The trace will be saved into a `trace.bin.gz` file, located in the same directory as the Robot test file.
+跟踪将保存到 `trace.bin.gz` 文件中，该文件与 Robot 测试文件位于同一目录中。
 
-To create a coverage report, execute the following command:
+要创建覆盖率报告，请执行以下命令：
 
 ```sh
 renode-retracer coverage trace.bin.gz \
@@ -299,22 +265,17 @@ renode-retracer coverage trace.bin.gz \
   --export-for-coverview
 ```
 
-Intentionally, no sources are provided.
-The script will discover and load them automatically, provided that they still exist on the current machine, where the build happened.
-Otherwise, you might need to adjust paths with `--sub-source-path`.
+故意不提供来源。该脚本将自动发现并加载它们，前提是它们仍然存在于进行构建的当前计算机上。否则，您可能需要使用 `--sub-source-path` 调整路径。
 
-Generating coverage data can take some time to process, depending on the application's codebase size and the execution time of the program (size of the trace).
+生成覆盖率数据可能需要一些时间来处理，具体取决于应用程序的代码库大小和程序的执行时间（跟踪的大小）。
 
-Afterwards, the archive can be loaded into [Coverview](#coverview-integration) and browsed interactively.
-For the code responsible for printing the board name (`samples/subsys/shell/shell_module/src/main.c`), it might look like so:
+之后，可以将存档加载到 [Coverview](#coverview-integration) 中并以交互方式浏览。对于负责打印板名称 （ `samples/subsys/shell/shell_module/src/main.c` ） 的代码，它可能如下所示：
 
 ![image](img/coverview-main-screen.png)
 
-## Legacy report mode
+## 旧版报告模式
 
-It's also possible to use a simple text-based mode for investigating coverage.
-To do so, pass the `--legacy` switch.
-For example, to obtain coverage data for `main.c` from the [sample application](#gathering-coverage-for-a-sample-program) described above, it's possible to do the following:
+也可以使用简单的基于文本的模式来调查覆盖率。为此，请传递 `--legacy` 开关。例如，要从上述[示例应用程序](#gathering-coverage-for-a-sample-program)获取 `main.c` 的覆盖率数据，可以执行以下作：
 
 ```sh
 renode-retracer coverage trace.bin.gz \
@@ -323,8 +284,7 @@ renode-retracer coverage trace.bin.gz \
   --legacy
 ```
 
-The output should start with the lines, as shown below.
-The number before the colon indicates the number of executions of each line.
+输出应以行开头，如下所示。冒号前的数字表示每行的执行次数。
 
 ```c
      0:   const int buf_size = 100;

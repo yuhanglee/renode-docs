@@ -1,21 +1,20 @@
-# Debugging with GDB
+# 使用 GDB 进行调试
 
-Renode allows you to debug applications running on emulated machines using [GDB](https://www.gnu.org/software/gdb/).
+Renode 允许您调试在使用 [GDB](https://www.gnu.org/software/gdb/) 的模拟计算机上运行的应用程序。
 
-It uses the GDB remote protocol and allows using the most common GDB functions, like breakpoints, watchpoints, stepping, memory access etc.
+它使用 GDB 远程协议，并允许使用最常见的 GDB 函数，如断点、观察点、步进、内存访问等。
 
-The most important difference to debugging on the real hardware, is that the virtual time does not progress when the emulated CPU is halted.
-This makes the debugging process transparent for the emulated machines.
+与在实际硬件上进行调试最重要的区别是，当仿真 CPU 停止时，虚拟时间不会进行。这使得调试过程对模拟的计算机透明。
 
-## Connecting to GDB
+## 连接到 GDB
 
-To start a GDB server on port 3333, run:
+要在端口 3333 上启动 GDB 服务器，请运行：
 
 ```none
 (machine-0) machine StartGdbServer 3333
 ```
 
-This allows you to start GDB from an appropriate toolchain and connect to a remote target:
+这允许您从适当的工具链启动 GDB 并连接到远程目标：
 
 ```
 $ arm-none-eabi-gdb /path/to/application.elf
@@ -24,57 +23,52 @@ $ arm-none-eabi-gdb /path/to/application.elf
 
 
 :::{note}
-This behavior can be different if there are several CPUs of different architectures present.
-For starting a GDB server on complex multicore platforms, see [complex scenarios](#complex-scenarios) for details on how to proceed.
+如果存在多个不同架构的 CPU，则此行为可能会有所不同。有关在复杂多核平台上启动 GDB 服务器的信息，请参阅[复杂场景](#complex-scenarios)以了解有关如何继续的详细信息。
 :::
 
-## Starting emulation
+## 开始仿真
 
-After GDB connects to Renode, the emulation needs to be started.
-Simply telling GDB to continue is not enough to start the time flow, as it would disrupt more complicated multinode scenarios.
+GDB 连接到 Renode 后，需要启动仿真。简单地告诉 GDB 继续并不足以启动时间流，因为它会破坏更复杂的多节点场景。
 
-There are three ways to start the whole setup.
+有三种方法可以启动整个设置。
 
-You can start the emulation manually from Renode's Monitor, typing the usual:
+您可以从 Renode 的 Monitor 手动启动仿真，键入通常的：
 
 ```none
 (machine-0) start
 ```
 
-Then, in GDB, run:
+然后，在 GDB 中运行：
 
 ```
 (gdb) continue
 ```
 
-Alternatively, GDB's `monitor` command may be used to pass the commands to Renode's Monitor:
+或者，可以使用 GDB 的 `monitor` 命令将命令传递给 Renode 的 Monitor：
 
 ```
 (gdb) monitor start
 (gdb) continue
 ```
 
-The third option, suited for the simplest scenarios, makes Renode start the whole emulation as soon as GDB connects.
-It requires an additional parameter for `StartGdbServer`, named `autostartEmulation`:
+第三个选项适用于最简单的场景，使 Renode 在 GDB 连接后立即启动整个仿真。它需要一个名为 `autostartEmulation` 的 `StartGdbServer` 附加参数：
 
 ```none
 (machine-0) machine StartGdbServer 3333 true
 ```
 
 (complex-scenarios)=
-## Complex scenarios
+## 复杂场景
 
-By default, the command `StartGdbServer` tries to add all CPUs of a machine to the newly created server, only if all of them are of the same architecture.
-Otherwise, specifying the cluster with `cpuCluster="cluster-name"`, or a specific CPU with `cpu=cpuName` is needed:
+默认情况下，命令 `StartGdbServer` 会尝试将机器的所有 CPU 添加到新创建的服务器中，前提是所有 CPU 都具有相同的架构。否则，需要使用 `cpuCluster=“cluster-name”` 指定集群，或使用 `cpu=cpuName` 指定特定 CPU：
 
 ```none
 (machine-0) machine StartGdbServer 3333 true cpuCluster="cortex-r5f"
 ```
 
-If an invalid cluster is provided, the list of available clusters will be printed out to choose from.
+如果提供的集群无效，则将打印出可用集群的列表以供选择。
 
-However, if you are certain that your debugger can handle heterogeneous CPUs, simply use `cpuCluster="all"` to attach all available cores to the one stub.
-You can also add clusters/CPUs one-by-one:
+但是，如果您确定调试器可以处理异构 CPU，只需使用 `cpuCluster=“all”` 将所有可用内核附加到一个存根。您还可以逐个添加集群/CPU：
 
 ```none
 (machine-0) machine StartGdbServer 3333 true cpuCluster="cortex-r5f"
@@ -82,31 +76,30 @@ You can also add clusters/CPUs one-by-one:
 (machine-0) machine StartGdbServer 3333 true cpu=sysbus.apu2
 ```
 
-This will result in GDB server running on port 3333 and having CPUs from `cortex-r5f` cluster, and additionally CPUs called `apu0` and `apu2`, attached.
+这将导致 GDB 服务器在端口 3333 上运行，并连接来自 `cortex-r5f` 集群的 CPU，另外还连接了名为 `apu0` 和 `apu2` 的 CPU。
 
-It is also possible to add a specific CPU to an existing server, or create a new server with that CPU.
-This allows you to create more complex setups, with multiple GDB instances running debug sessions with different CPUs.
+还可以将特定 CPU 添加到现有服务器，或使用该 CPU 创建新服务器。这允许您创建更复杂的设置，其中多个 GDB 实例使用不同的 CPU 运行调试会话。
 
-To start a GDB server on port 3333 with one CPU, two more paramaters are required - previously mentioned `autostartEmulation`, and `cpu`:
+要在端口 3333 上使用一个 CPU 启动 GDB 服务器，还需要两个参数 - 前面提到的 `autostartSimulate` 和 `cpu`：
 
 ```none
 (machine-0) machine StartGdbServer 3333 true sysbus.cpu1
 ```
 
-To add a second CPU to that server, run:
+要向该服务器添加第二个 CPU，请运行：
 
 ```none
 (machine-0) machine StartGdbServer 3333 true sysbus.cpu2
 ```
 
-To start a new GDB server on port 3334 with another CPU, run:
+要使用另一个 CPU 在端口 3334 上启动新的 GDB 服务器，请运行：
 
 ```none
 (machine-0) machine StartGdbServer 3334 true sysbus.cpu3
 ```
 
-These commands will give you a setup consisting of two GDB servers - on port 3333 with two CPUs, and on port 3334 with one CPU.
+这些命令将为您提供一个由两个 GDB 服务器组成的设置 - 在端口 3333 上有两个 CPU，在端口 3334 上有一个 CPU。
 
-Furthermore, the `StartGdbServer` command will prohibit you from adding one CPU to more than one GDB server.
+此外，`StartGdbServer` 命令将禁止您将一个 CPU 添加到多个 GDB 服务器。
 
-If a CPU was added to a GDB server by providing the `autostartEmulation` and `cpu` parameters, it will be impossible to run the general version of the command on that machine.
+如果通过提供 `autostartEmulation` 和 `cpu` 参数将 CPU 添加到 GDB 服务器，则无法在该计算机上运行该命令的常规版本。

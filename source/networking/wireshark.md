@@ -1,15 +1,14 @@
-# Inspecting the traffic with Wireshark
+# 使用 Wireshark 检查流量
 
-[Wireshark](https://www.wireshark.org) is an open source network packet analyzer that can be used to sniff the network traffic between emulated nodes and/or the host network interface.
+[Wireshark](https://www.wireshark.org/) 是一个开源网络数据包分析器，可用于嗅探模拟节点和/或主机网络接口之间的网络流量。
 
-Renode uses the libpcap format to provide data to Wireshark.
+Renode 使用 libpcap 格式向 Wireshark 提供数据。
 
-## Logging the whole traffic
+## 记录整个流量
 
-Renode supports multiple link layer protocols, i.e. Ethernet, Bluetooth Low Energy, IEEE 802.15.4 and CAN.
-Each protocol has its own set of commands to enable logging of all traffic or with filtering.
+Renode 支持多种链路层协议，即以太网、低功耗蓝牙、IEEE 802.15.4 和 CAN。每个协议都有自己的一组命令，用于启用所有流量的日志记录或筛选。
 
-The `emulation Log<Protocol Name>Traffic` commands will automatically connect Wireshark to all existing and new networks for the given protocol.
+这些 `emulation Log<Protocol Name>Traffic` 命令会自动将 Wireshark 连接到给定协议的所有现有和新网络。
 
 ```{list-table} Protocol specific global logging
 :header-rows: 1
@@ -26,16 +25,15 @@ The `emulation Log<Protocol Name>Traffic` commands will automatically connect Wi
   - LogCANTraffic
 ```
 
-You can also manually open Wireshark window, before setting up a network with:
+您也可以在设置网络之前手动打开 Wireshark 窗口：
 
 ```text
 (monitor) host.wireshark-all<Protocol Name>Traffic Run
 ```
 
-## Observing a specific interface
+## 观察特定接口
 
-Inspecting traffic of a specific switch, bus or a wireless medium can be done with `emulation LogToWireshark` command.
-You can also limit the observation to a specific interface connected to that switch, bus or medium.
+可以使用`仿真 LogToWireshark` 命令检查特定交换机、总线或无线介质的流量。您还可以将观察限制为连接到该交换机、总线或介质的特定接口。
 
 
 ```{list-table} Protocol specific filtered logging
@@ -53,19 +51,18 @@ You can also limit the observation to a specific interface connected to that swi
   - CANHub
 ```
 
-### Ethernet example
+### 以太网示例
 
-To enable logging on a `switch` object run:
+要在 `switch` 对象上运行日志记录，请执行以下作：
 
 ```text
 (monitor) emulation LogToWireshark switch
 ```
 
-To observe only the `sysbus.ethernet` interface connected to `switch` run:
+要仅观察连接到`交换机`的 `sysbus.ethernet` 接口，请运行：
 
 ```text
 (machine-0) emulation LogToWireshark switch sysbus.ethernet
 ```
 
-The names of Wireshark objects created depend on the machine name, the switch name and the interface name.
-In the above case Renode creates an object named `host.wireshark-switch-machine-0-sysbus-ethernet`.
+创建的 Wireshark 对象的名称取决于计算机名称、交换机名称和接口名称。在上述情况下，Renode 会创建一个名为 `host.wireshark-switch-machine-0-sysbus-ethernet` .

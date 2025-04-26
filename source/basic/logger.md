@@ -1,16 +1,16 @@
 (using-logger)=
 
-# Using the logger
+# 使用 Logger
 
-The first window that appears after starting Renode is dedicated to the logger.
+启动 Renode 后出现的第一个窗口专用于 Logger。
 
-There are many logging options you can use to improve your experience with the presented information.
+您可以使用许多日志记录选项来改善对所显示信息的体验。
 
 (log-level)=
 
-## Logging level
+## 日志记录级别
 
-There are five available logging levels:
+有五个可用的日志记录级别：
 
 * NOISY (-1),
 * DEBUG (0),
@@ -18,31 +18,30 @@ There are five available logging levels:
 * WARNING (2),
 * ERROR (3).
 
-You can select which messages are logged using the `logLevel` command.
-Each emulation object can be configured separately.
-Also each logger backend (e.g. {ref}`log file <log-file>`) can have its own configuration.
+您可以使用 `logLevel` 命令选择要记录的消息。每个仿真对象都可以单独配置。此外，每个 logger 后端（例如 {ref}`log file <log-file>` ）都可以有自己的配置。
 
-By default, messages from all levels but the NOISY level are logged.
 
-To set the global log level to NOISY, type:
+默认情况下，将记录来自除 NOISY 级别之外的所有级别的消息。
+
+要将全局日志级别设置为 NOISY，请键入：
 
 ```none
 (machine-0) logLevel -1
 ```
 
-To change the log level only for a selected peripheral (in this case - the UART device), type:
+要仅更改所选外设（在本例中为 UART 设备）的日志级别，请键入：
 
 ```none
 (machine-0) logLevel -1 sysbus.uart
 ```
 
 ```{note}
-Increasing the number of logged messages may affect the performance of the emulation.
+增加记录的消息数可能会影响仿真的性能。
 ```
 
-The current log level can be verified by running `logLevel` without parameters.
+可以通过不带参数的 `logLevel` 来验证当前日志级别。
 
-This is the output of this command after some configuration:
+这是此命令在一些配置后的输出：
 
 ```none
 (machine-0) logLevel
@@ -57,63 +56,61 @@ console           :                                     : DEBUG
 
 (log-file)=
 
-## Logging to file
+## 记录到文件
 
-To analyze the output from a long-running emulation, it is often a good idea to redirect the log to a file.
+要分析长时间运行的仿真的输出，最好将日志重定向到文件。
 
-To achieve that, use the `logFile` command:
+为此，请使用 `logFile` 命令：
 
 ```none
 (machine-0) logFile @some_file_name
 ```
 
-This will not disable the console logger but will add a new sink, to be configured separately.
-From the performance point of view, depending on the scenario, it can be beneficial to increase the minimal console log level and keep the more detailed data in the log file.
+这不会禁用控制台记录器，但会添加一个新的 sink，以便单独配置。从性能的角度来看，根据方案，提高最低控制台日志级别并在日志文件中保留更详细的数据可能是有益的。
 
-To set the ERROR log level for a file backend, type:
+要为文件后端设置 ERROR 日志级别，请键入：
 
 ```none
 (machine-0) logLevel 2 file
 ```
 
-Peripherals can also have different log levels on different backends:
+外围设备也可以在不同的后端具有不同的日志级别：
 
 ```none
 (machine-0) logLevel 1 file sysbus.uart
 ```
 
-## Logging access to peripherals
+## 记录对外围设备的访问
 
-Apart from the standard logger configuration, you can enable logging of accesses to specific peripherals.
-This feature is enabled only for peripherals registered on a system bus.
+除了标准的 logger 配置外，您还可以启用对特定外设的访问日志记录。此功能仅对在 System Bus 上注册的外围设备启用。
 
-To enable it, run:
+要启用它，请运行：
 
 ```none
 (machine-0) sysbus LogPeripheralAccess sysbus.uart
 ```
 
-Now, whenever the CPU tries to read or write to this peripheral, you will see a message similar to this one:
+现在，每当 CPU 尝试读取或写入此外围设备时，您都会看到类似于此的消息：
 
 ```none
 14:32:28.6083 [INFO] uart: ReadByte from 0x0 (TransmitData), returned 0x0.
 ```
 
-To enable logging access to all peripherals, run:
+要启用对所有外围设备的日志记录访问，请运行：
 
 ```none
 (machine-0) sysbus LogAllPeripheralsAccess true
 ```
 
-### Creating a trace of the execution
+### 创建执行跟踪
 
-It is possible to create a trace of every function executed by the binary:
+可以创建二进制文件执行的每个函数的跟踪：
 
 ```none
 (machine-0) sysbus.cpu LogFunctionNames true
 ```
 
-As a result, the names of the functions will be printed to the log at `INFO` level:
+因此，函数的名称将打印到 `INFO` 级别的日志中：
 
 ```
 17:05:23.8834 [INFO] cpu: Entering function kobject_uevent_env at 0xC014CD9C
@@ -125,19 +122,19 @@ As a result, the names of the functions will be printed to the log at `INFO` lev
 17:05:23.8835 [INFO] cpu: Entering function kmem_cache_alloc at 0xC0085630
 ```
 
-If you are interested only in a subset of functions, you can limit the results by providing space-separated names prefixes:
+如果您只对函数的子集感兴趣，则可以通过提供以空格分隔的名称前缀来限制结果：
 
 ```none
 (machine-0) sysbus.cpu LogFunctionNames true "dev kobject"
 ```
 
-You can also avoid logging subsequent duplicate function names by adding another `true` argument either instead of or after the optional function name prefixes:
+您还可以通过添加另一个 `true` 参数来避免记录后续的重复函数名称，而不是可选的函数名称前缀：
 
 ```none
 (machine-0) sysbus.cpu LogFunctionNames true ["dev kobject"] true
 ```
 
-Only these three lines would remain printed in the aforementioned example with both function name filtering and duplicate removal applied:
+在上述示例中，只有这三行将保持打印状态，同时应用函数名称筛选和重复删除：
 
 ```
 17:05:23.8834 [INFO] cpu: Entering function kobject_uevent_env at 0xC014CD9C
@@ -145,30 +142,28 @@ Only these three lines would remain printed in the aforementioned example with b
 17:05:23.8834 [INFO] cpu: Entering function kobject_uevent_env at 0xC014CDA8
 ```
 
-## Hushing excessive unhandled access logs
+## 隐藏过多的未处理访问日志
 
-Renode, by default, informs you about unhandled accesses to memory ranges that are not covered by any model.
-You may see logs like this:
+默认情况下，Renode 会通知您对任何模型未涵盖的内存范围的未处理访问。您可能会看到如下日志：
 
 ```
     09:21:8.1960 [WARNING] sysbus: [cpu: 0x08001200] WriteDoubleWord to non existing peripheral at 0x400D0114, value 0xFFFFFFFF.
     09:21:9.4538 [WARNING] sysbus: [cpu: 0x080012E6] ReadDoubleWord from non existing peripheral at 0x400D0118, returning 0x0.
 ```
 
-These logs are there to inform you that your platform's description is not complete and if you observe issues with your simulation it might be one of the possible cases.
+这些日志用于通知您平台的描述不完整，如果您发现模拟存在问题，则可能是可能的情况之一。
 
-Very often these unhandled regions will not affect any important aspects of the execution and you might want to silence these logs.
+通常，这些未处理的区域不会影响执行的任何重要方面，您可能希望将这些日志静音。
 
-While changing the {ref}`log level <log-level>` to `ERROR` to hide warnings might be one option, it could be a too radical solution as you might want to continue seeing other warnings.
+虽然将 {ref}`log level <log-level>` 更改为 `ERROR` 以隐藏警告可能是一种选择，但这可能是一个过于激进的解决方案，因为您可能希望继续看到其他警告。
 
-The best way to achieve fine-grained logging control in this case is with the `SilenceRange` feature.
-E.g. if you want to disable logging for addresses in the range between `0x80000` and `0x801000`, run:
+在这种情况下，实现细粒度日志记录控制的最佳方法是使用 `SilenceRange` 功能。例如，如果要禁用 `0x80000` 到 `0x801000` 范围内地址的日志记录，请运行：
 
 ```none
     sysbus SilenceRange <0x80000 0x1000>
 ```
 
-You can do it from the REPL level in the `sysbus` init section as well:
+您也可以从 `sysbus` init 部分的 REPL 级别执行此作：
 
 ```none
     sysbus:

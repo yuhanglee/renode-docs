@@ -1,37 +1,35 @@
 (working-with-machines)=
 
-# Working with machines
+# 使用机器
 
-Renode allows to easily handle emulations spanning multiple machines.
+Renode 允许轻松处理跨多台机器的仿真。
 
-## Creating machines
+## 创建机器
 
-In the beginning, the emulation is empty as there is no machine to run.
-In order to add an empty one, execute:
+一开始，仿真是空的，因为没有要运行的计算机。要添加空 KEY，请执行：
 
 ```
 (monitor) mach create
 (machine-0)
 ```
 
-This creates the first machine, which, if you don't give it a custom name, will be indexed from 0 (and thus called machine-0).
-This command also switches the Monitor's context to this new machine.
+这将创建第一台计算机，如果您不给它一个自定义名称，它将从 0 开始索引（因此称为 machine-0）。此命令还会将 Monitor 的上下文切换到此新计算机。
 
-Executing the same command again will create another machine, called `machine-1`:
+再次执行相同的命令将创建另一台名为 `machine-1` 的机器：
 
 ```none
 (machine-0) mach create
 (machine-1)
 ```
 
-You can create a machine with a custom name by providing it as the argument:
+您可以通过提供自定义名称作为参数来创建具有自定义名称的计算机：
 
 ```none
 (monitor) mach create "my-machine"
 (my-machine)
 ```
 
-To list all created machines together with their names and indices, type:
+要列出所有已创建的计算机及其名称和索引，请键入：
 
 ```none
 (my-machine) help mach
@@ -39,16 +37,16 @@ To list all created machines together with their names and indices, type:
 
 (machine-context)=
 
-## Switching between machines
+## 在机器之间切换
 
-When you want to switch the Monitor's context to another machine type:
+当您想要将 Monitor 的上下文切换到另一种机器类型时：
 
 ```none
 (machine-1) mach set "machine-0"
 (machine-0)
 ```
 
-Instead of the machine's name, you can use its index as well:
+除了计算机的名称，您还可以使用其索引：
 
 ```none
 (machine-1) mach set 0
@@ -57,12 +55,11 @@ Instead of the machine's name, you can use its index as well:
 
 (loading-platforms)=
 
-## Loading platforms
+## 加载平台
 
-Once a machine is created, it contains only one peripheral - the *system bus* called simply `sysbus`.
-There is no memory or CPU, so the machine is not yet ready to execute any code.
+创建机器后，它只包含一个外围设备 - **系统总线** ，简称为 `sysbus`。没有内存或 CPU，因此计算机尚未准备好执行任何代码。
 
-To list all peripherals, execute:
+要列出所有外围设备，请执行：
 
 ```none
 (machine-0) peripherals
@@ -71,7 +68,7 @@ Available peripherals:
   sysbus (SystemBus)
 ```
 
-To load a predefined platform (in this example, *Microsemi MiV*), type:
+要加载预定义的平台（在本例中为 *Microsemi MiV*），请键入：
 
 ```none
 (machine-0) machine LoadPlatformDescription @platforms/cpus/miv.repl
@@ -110,28 +107,26 @@ sysbus (SystemBus)
       <0x70001000, 0x70001017>
 ```
 
-The format of `.repl` (Renode platform) files is presented in the [Describing platform](./describing_platforms.md) section.
+`.repl` （Renode 平台） 文件的格式显示在 [描述平台](./describing_platforms.md) 部分。
 
 (accessing-and-manipulating-peripherals)=
-## Accessing and manipulating peripherals
+## 访问和作外围设备
 
-When you are in the context of a machine in the Monitor you can reference peripherals by name.
-You can read and write a peripheral's properties as well as execute some actions on them.
-The set of available properties and operations depends on the type of peripheral.
+当您在 Monitor 中的计算机上下文中时，您可以按名称引用外围设备。您可以读取和写入外围设备的属性，并对其执行一些作。可用属性和作的集合取决于外围设备的类型。
 
-For example, to check memory size, execute:
+例如，要检查内存大小，请执行：
 
 ```none
 (machine-0) sysbus.ddr Size
 ```
 
-To call an action on the peripheral, use the same syntax but replace `Size` with the action name, e.g., `ZeroAll`:
+要在外围设备上调用作，请使用相同的语法，但将 `Size` 替换为作名称，例如 `ZeroAll`：
 
 ```none
 (machine-0) sysbus.ddr ZeroAll
 ```
 
-To get the complete list of available properties or actions, just enter the peripheral's name:
+要获取可用属性或作的完整列表，只需输入外围设备的名称：
 
 ```none
 (machine-0) sysbus.ddr
@@ -155,54 +150,51 @@ Usage:
 - set: sysbus.ddr PropertyName Value
 ```
 
-The `Usage` sections describe the proper syntax for accessing the peripheral's features.
+`Usage` 部分描述了访问外围设备功能的正确语法。
 
-## Loading binaries
+## 加载二进制文件
 
-Once the platform is created and configured, you can upload the software onto it.
-Renode allows you to run exactly the same executable as on the real hardware, which means there is no need to alter the binary or recompile the source.
+创建并配置平台后，您可以将软件上传到它上面。Renode 允许您运行与真实硬件上完全相同的可执行文件，这意味着无需更改二进制文件或重新编译源代码。
 
-In Renode, you can use local binaries or load them via HTTPS.
-If you do not have a binary at your disposal, you can use this [sample Zephyr Shell sample for MiV](https://dl.antmicro.com/projects/renode/shell-demo-miv.elf-s_803248-ea4ddb074325b2cc1aae56800d099c7cf56e592a).
 
-To load a local `.elf` file into memory, execute:
+在 Renode 中，您可以使用本地二进制文件或通过 HTTPS 加载它们。如果您没有二进制文件，则可以使用此示例 [Zephyr Shell 示例进行 MiV](https://dl.antmicro.com/projects/renode/shell-demo-miv.elf-s_803248-ea4ddb074325b2cc1aae56800d099c7cf56e592a)。
+
+要将本地 `.elf` 文件加载到内存中，请执行：
 
 ```none
 (machine-0) sysbus LoadELF @my-project.elf
 ```
 
-To load a binary via HTTPS:
+要通过 HTTPS 加载二进制文件：
 
 ```none
 (machine-0) sysbus LoadELF @https://remote-server.com/my-project.elf
 ```
 
 ````{note}
-If you load multiple ELF files, Renode will look for the lowest loaded section of the last ELF file to locate the initial PC (or vector table offset on Cortex-M machines).
-That means the last ELF you load will set up your CPU starting point.
+如果加载多个 ELF 文件，Renode 将查找最后一个 ELF 文件的最低加载部分，以查找初始 PC（或 Cortex-M 计算机上的矢量表偏移量）。这意味着您加载的最后一个 ELF 将设置您的 CPU 起点。
 
-To override this, you can set the initial values manually, using:
+要覆盖此设置，您可以使用以下方法手动设置初始值：
 
 ```none
 sysbus.cpu PC 0xYourValue
 ```
 
-or, on Cortex-M:
+或者，在 Cortex-M 上：
 
 ```none
 sysbus.cpu VectorTableOffset 0xYourValue
 ```
 ````
 
-Renode supports other executable formats like raw binary, `UImage` and `HEX` as well.
-To load them, use `LoadBinary`, `LoadUImage` or `LoadHEX` accordingly.
+Renode 还支持其他可执行格式，如原始二进制、`UImage` 和 `HEX`。要加载它们，请相应地使用 `LoadBinary`、`LoadUImage` 或 `LoadHEX`。
 
-## Clearing the emulation
+## 清除仿真
 
-If you want to switch to another project, you can drop the whole emulation::
+如果你想切换到另一个项目，你可以删除整个仿真：：
 
 ```none
 (machine-0) Clear
 ```
 
-All machines, peripherals, and loaded binaries will be removed, and Renode will return to its initial state.
+所有机器、外围设备和加载的二进制文件都将被删除，Renode 将返回到其初始状态。

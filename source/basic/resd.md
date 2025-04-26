@@ -1,17 +1,14 @@
-# Renode Sensor Data Format (RESD)
+# Renode 传感器数据格式 （RESD）
 
-For an introduction and description of simple operations on your simulated sensors, such as assigning a constant value as a sensor readout, see the {doc}`../basic/sensors` chapter.
+有关对模拟传感器进行简单作的介绍和说明，例如将常量值分配为传感器读数，请参阅  {doc}`../basic/sensors` 一章。
 
-## What is the Renode Sensor Data format?
+## 什么是 Renode 传感器数据格式
 
-Renode Sensor Data (RESD) is a unified and portable way to provide sample data for sensor models implemented in Renode.
-Sensor data described in `.resd` files use standard units and fixed formats for all data types, so they can be used by any existing or future model.
+Renode 传感器数据 （RESD） 是一种统一且可移植的方式，可为 Renode 中实现的传感器模型提供样本数据。`.resd` 文件中描述的传感器数据对所有数据类型使用标准单位和固定格式，因此它们可以被任何现有或未来的模型使用。
 
-The data stored in a `.resd` file is divided into independent channels, each of a given type (e.g. temperature or acceleration).
-This allows a single input file to be used for multiple sensors such as IMU.
-It is also possible to include multiple channels of the same type (each identified by a unique channel ID), e.g. two channels for temperature readings.
+存储在 `.resd` 文件中的数据被划分为多个独立的通道，每个通道具有给定的类型（例如温度或加速度）。这允许将单个输入文件用于多个传感器，例如 IMU。也可以包含多个相同类型的通道（每个通道由唯一的通道 ID 标识），例如两个用于温度读数的通道。
 
-Each `.resd` file consists of a single file header followed by a variable number of data blocks:
+每个 `.resd` 文件都包含一个文件头，后跟一个数量可变的数据块：
 
 ```
 00000000  52 45 53 44 01 00 00 00  02 01 00 00 00 a8 01 00  |RESD............|
@@ -22,13 +19,13 @@ Each `.resd` file consists of a single file header followed by a variable number
 00000050  00 4d 9b 03 00 21 af 03  00 6f 96 03 00 20 ba 03  |.M...!...o... ..|
 ```
 
-You can easily create a binary file like the one shown above from a CSV file using the [CSV - RESD parser](csv-resd).
+您可以使用 [CSV - RESD 解析器](csv-resd)从 CSV 文件轻松创建如上所示的二进制文件。
 
-The file header consists of a 4-byte magic string value `RESD` encoded in ASCII, followed by a single byte defining the version of the format the file uses (the code above uses version 0x1), followed by 3 bytes of reserved padding (currently defined as all zeros).
+文件头由一个以 ASCII 编码的 4 字节魔术字符串值 `RESD` 组成，后跟一个定义文件使用的格式版本的字节（上面的代码使用版本 0x1），后跟 3 个字节的保留填充（当前定义为全零）。
 
-## RESD Data Blocks
+## RESD 数据块
 
-Each block header is structured in the following way:
+每个区块头的结构如下：
 
 ```{csv-table} Block header structure
 :header-rows: 1
@@ -38,9 +35,9 @@ Bytes | 0          | 1 - 2       | 3 - 4      | 5 - 8
 Name  | Block type | Sample type | Channel id | Data size
 ```
 
-### RESD Block Types
+### RESD 区块类型
 
-Currently, you can use the following block types in your `.resd` files:
+目前，您可以在 `.resd` 文件中使用以下块类型：
 
 ```{csv-table} Block types
 :header-rows: 1
@@ -54,34 +51,33 @@ ID  | Block type
 
 (arbitrary-timestamp-sample-blocks)=
 
-#### Arbitrary timestamp sample blocks
+#### 任意时间戳示例块
 
-Arbitrary timestamp sample blocks contain a series of samples, each with its own [timestamp](timestamps).
-In this type of sample block, you do not specify a period between samples, but instead provide a specific timestamp for each sample to simulate irregular sensor readings.
+任意时间戳样本块包含一系列样本，每个样本都有自己的[时间戳](timestamps) 。在这种类型的样本模块中，您不指定样本之间的时间段，而是为每个样本提供特定的时间戳，以模拟不规则的传感器读数。
 
 (constant-frequency-sample-blocks)=
 
-#### Constant frequency sample blocks
+#### 恒频采样块
 
-In constant-frequency blocks, the block header is 16 bytes longer than the arbitrary timestamp block and includes an additional sub-header that provides information about the timestamp of the first sample in a series and a period between consecutive samples.
+在恒定频率块中，块头比任意时间戳块长 16 字节，并包含一个额外的子头，该子头提供有关序列中第一个样本的时间戳和连续样本之间的时间段的信息。
 
 ```{note}
-If your block contains more than 1 sample, the period value of `0` is invalid.
+如果您的数据块包含超过 1 个样本，则 period 值 `0` 无效。
 ```
 
 (timestamps)=
 
-#### Timestamps
+#### 时间戳
 
-Timestamps in `.resd` are encoded as unsigned 8-byte values expressed in virtual nanoseconds counted from the beginning of the file.
+`.resd` 中的时间戳编码为无符号的 8 字节值，以虚拟纳秒表示，从文件开头开始计数。
 
 ```{note}
-The `.resd` parser can optionally support a global timestamp addend applied to all samples in the file (e.g. to allow loading the same input file twice at different moments in virtual time).
+`.resd` 解析器可以选择支持应用于文件中的所有样本的全局时间戳加数（例如，允许在虚拟时间的不同时刻加载同一输入文件两次）。
 ```
 
-### RESD Sample Types
+### RESD 样本类型
 
-Your `.resd` files can contain the following sample types:
+您的 `.resd` 文件可以包含以下样本类型：
 
 ```{csv-table} Sample types
 :header-rows: 1
@@ -100,21 +96,19 @@ ID              | Sample Type           | Sample Unit
 0xF000 - 0xFFFF | Custom                | defined by model-specific input
 ```
 
-Keep in mind that sample types other than Custom do not utilize a [metadata](metadata) dictionary (metadata size set to 0).
+请记住，除 Custom 以外的样本类型不使用[元数据](metadata)字典（元数据大小设置为 0）。
 
 ```{note}
-Using a custom sensor data type makes the input data tightly coupled to the particular sensor implementation, and therefore, it might not be compatible with other sensors.
+使用自定义传感器数据类型会使输入数据与特定传感器实现紧密耦合，因此，它可能与其他传感器不兼容。
 ```
 
 (metadata)=
 
-#### Metadata
+#### 元数据
 
-Metadata is a binary-encoded dictionary, where each entry consists of a key name, key type, and value.
-The first 8 bytes indicate the size of the metadata section and can be set to 0 to indicate that the given block contains no additional metadata.
+元数据是一个二进制编码的字典，其中每个条目都由键名、键类型和值组成。前 8 个字节表示元数据部分的大小，可以设置为 0 以指示给定块不包含其他元数据。
 
-The key name is a null-terminated string consisting of [a-z0-9_] characters.
-It's followed by a byte that describes the type of the value for the given key:
+键名称是由 [a-z0-9_] 个字符组成的以 null 结尾的字符串。它后跟一个字节，用于描述给定键的值类型：
 
 ```{csv-table} Metadata Types
 :header-rows: 1
@@ -137,10 +131,10 @@ ID   | Metadata type
 ```
 
 ```{note}
-In blob type metadata, the first 4 bytes encode the blob content length reset as an unsigned integer.
+在 blob 类型元数据中，前 4 个字节将 blob 内容长度重置编码为无符号整数。
 ```
 
-For example, the encoding of a metadata section consisting of two entries: a description of type string and data of type blob would look like this:
+例如，由两个条目组成的元数据部分的编码：字符串类型的描述和 blob 类型的数据将如下所示：
 
 ```{csv-table} Example metadata string and blob
 :header-rows: 1
@@ -157,12 +151,11 @@ Bytes   | Name             | Value
 70 - 74 | Blob content     | 0xDE 0xAD 0xC0 0xFF 0xEE
 ```
 
-### Custom Sample Data Example - MAX86171 AFE
+### 自定义示例数据示例 - MAX86171 AFE
 
-The following instructions show how to use RESD to create a custom sample data example based on a real sensor - [MAX86171 AFE](https://www.analog.com/media/en/technical-documentation/data-sheets/MAX86171.pdf).
+以下说明显示了如何使用 RESD 创建基于真实传感器 [MAX86171 AFE](https://www.analog.com/media/en/technical-documentation/data-sheets/MAX86171.pdf) 的自定义示例数据示例。
 
-The measurements taken by the MAX86171 AFE sensor depend on the channel configuration, e.g. the LED exposure drive current value directly affects the photodiode output.
-Therefore, each MAX86171 AFE sample data block begins with a metadata section containing a dictionary of the following information:
+MAX86171 AFE 传感器进行的测量取决于通道配置，例如 LED 曝光驱动电流值直接影响光电二极管输出。因此，每个 MAX86171 AFE 示例数据块都以包含以下信息字典的元数据部分开头：
 
 ```{csv-table} Metadata string and blob example
 :header-rows: 1
@@ -183,9 +176,9 @@ pd_b_adc_range    | uint32 | PD B ADC range
 pd_b_dac_offset   | int16  | PD B DAC offset
 ```
 
-#### MAX86171 AFE Sample Data
+#### MAX86171 AFE 示例数据
 
-A single MAX86171 AFE sample is described as a one-byte unsigned value containing a number of active channels followed by a list of measurement frames, each encoded as a four-byte unsigned value:
+单个 MAX86171 AFE 样本被描述为一个单字节的无符号值，其中包含多个活动通道，后跟一个测量帧列表，每个测量帧编码为一个四字节的无符号值：
 
 ```{csv-table} MAX86171 AFE sample data structure
 :header-rows: 1
@@ -195,7 +188,7 @@ Bytes            | 0                | 1 - 4    | 5 - 8    | (8N + 1) - (8N + 4)
 Values [raw AFE] | Number of frames | Frame #0 | Frame #1 | Frame #N
 ```
 
-An AFE sample in RESD corresponds to a single frame generated by the MAX86171 AFE: two tagged samples are required for each active measurement, as described in the FIFO Description section of the MAX86171 data sheet:
+RESD 中的 AFE 样本对应于 MAX86171 AFE 生成的单个帧：每次有效测量都需要两个标记样本，如 MAX86171 数据表的 FIFO 描述部分所述：
 
 ```{csv-table} MAX86171 AFE sample details
 :header-rows: 1
@@ -205,7 +198,7 @@ Bits   | 31..24   | 23..20 | 19..0
 Values | Reserved | Tag    | Value
 ```
 
-The tag section follows the specification from the FIFO Description section of the sensor's data sheet:
+tag 部分遵循传感器数据表的 FIFO Description 部分的规范：
 
 ```{csv-table} MAX86171 AFE sample details
 :header-rows: 1
@@ -230,7 +223,7 @@ Tag  | Description
 0x0F | Reserved
 ```
 
-A sample with data two measurement OC channel 1 would then look like this:
+数据为 2 测量 OC 通道 1 的样本将如下所示：
 
 ```{csv-table} MAX86171 AFE sample details
 :header-rows: 1
@@ -241,7 +234,7 @@ Names  | No. frames | Frame 1 (Measurement 1) | Frame 2 (Measurement 1)
 Values | 0x2        | 0x00 0x01 0x12 0x34     | 0x00 0x01 0x12 0x34
 ```
 
-The frames can be decoded as:
+这些帧可以解码为：
 
 ```{csv-table} MAX86171 AFE decoded frames
 :header-rows: 1
@@ -254,11 +247,11 @@ Values | 0x000    | 0x1               | 0x1234
 
 (csv-resd)=
 
-### CSV - RESD parser usage
+### CSV - RESD 解析器使用
 
-The [CSV - RESD parser](https://github.com/renode/renode/tree/master/tools/csv2resd) is a tool in the Renode repository that allows you to convert CSV files to the RESD file format.
+[CSV - RESD 解析器](https://github.com/renode/renode/tree/master/tools/csv2resd)是 Renode 存储库中的一个工具，允许您将 CSV 文件转换为 RESD 文件格式。
 
-To use the tool, follow this syntax:
+要使用该工具，请遵循以下语法：
 
 ```none
 ./csv2resd.py [GROUP]
@@ -266,20 +259,18 @@ GROUP ::= -i <csv-file> [-m <type>:<field(s)>:<target(s)>*:<channel>*]
           -s <start-time> -f <frequency> -t <timestamp> -o <offset> -c <count>
 ```
 
-The syntax allows multiple group specifications, where --input is a separator between groups.
-You can specify multiple mappings (`-map`) for each `--input`.
+语法允许多个组规范，其中 –input 是组之间的分隔符。您可以为每个 `--input` 指定多个映射 （`-map`）。
 
-The `*` in `--map` indicates that the given property is optional.
-For your `--map` argument to be correct, it must be structured in one of the following ways:
+`--map` 中的 `*` 表示给定的属性是可选的。要使 `--map` 参数正确，必须采用以下方式之一进行结构构建：
 
 * `--map <type>:<field(s)>`
 * `--map <type>:<field(s)>:<target(s)>`
 * `--map <type>:<field(s)>:<target(s)>:<channel>`
 * `--map <type>:<field>::<channel>`
 
-See `--help` for more information.
+有关更多信息，请参见 `--help`。
 
-If you wanted to extract the columns `temp1` and `temp2` from the file `first.csv` and first 3 samples `temp` from the file `second.csv` and then map them to the temperature channels `0`, `1` and `2` in RESD, respectively, you would run the script with the following parameters:
+如果要从文件 `first.csv` 中提取 `temp1` 和 `temp2` 列，从文件 `second.csv` 中提取前 3 个样本 `temp`，然后将它们分别映射到 RESD 中的温度通道 `0`、`1` 和 `2`，则可以使用以下参数运行脚本：
 
 ```none
 ./csv2resd.py \
@@ -296,18 +287,18 @@ If you wanted to extract the columns `temp1` and `temp2` from the file `first.cs
     output.resd
 ```
 
-### RESD introspection
+### RESD 内省
 
-Renode comes with a command for inspecting RESD files without a need to load them to any particular sensor model.
+Renode 附带一个用于检查 RESD 文件的命令，而无需将它们加载到任何特定的传感器型号。
 
-To analyze the content of a RESD file, first load it with:
+要分析 RESD 文件的内容，请首先使用以下命令加载它：
 
 ```none
 (monitor) resd load r1 @my_samples.resd
 RESD file from 'my_samples.resd' loaded under identifier 'r1'
 ```
 
-Now, you can print information about sample blocks with:
+现在，您可以使用以下方法打印有关示例模块的信息：
 
 ```none
 (monitor) resd list-blocks r1
@@ -326,7 +317,8 @@ Period: 00:00:01.000000
 Frequency: 1Hz
 ```
 
-You can also dump selected samples (e.g., between timestamps of 2.2 and 2.3 seconds) with:
+您还可以使用以下方法转储选定的样本（例如，在 2.2 秒和 2.3 秒的时间戳之间）：
+
 ```none
 (monitor) resd get-samples-range r1 2 "2.2" "2.3"
 00:00:02.203125: [0, 0, 0.1] g
@@ -338,7 +330,8 @@ You can also dump selected samples (e.g., between timestamps of 2.2 and 2.3 seco
 00:00:02.296875: [0, 0, 0.0] g
 ```
 
-For more details, see the command's help output:
+有关更多详细信息，请参阅命令的帮助输出：
+
 ```none
 (monitor) help resd
 resd

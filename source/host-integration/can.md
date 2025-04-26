@@ -1,27 +1,24 @@
-# CAN integration
+# CAN 集成
 
 ```{note}
-This feature is available on Linux only.
+此功能仅在 Linux 上可用。
 ```
 
-Renode can connect to a virtual CAN interface on the host machine by using an internal SocketCAN bridge.
-This integration relies on [SocketCAN](https://www.kernel.org/doc/html/latest/networking/can.html) for the communication between the host and internal CAN networks.
+Renode 可以使用内部 SocketCAN 桥接器连接到主机上的虚拟 CAN 接口。这种集成依赖于 [SocketCAN](https://www.kernel.org/doc/html/latest/networking/can.html) 来实现主机和内部 CAN 网络之间的通信。
 
-Using this standardized communication method allows Renode to transfer Classical and FD CAN frames. XL CAN frames are handled by the bridge, but they won't be forwarded to the internal network, as this frame type is not yet supported in Renode.
+使用这种标准化的通信方法，Renode 可以传输经典和 FD CAN 帧。XL CAN 帧由网桥处理，但它们不会转发到内部网络，因为 Renode 尚不支持这种帧类型。
 
-To see CAN host-integration in action, you can try the [SocketCAN bridge demo](https://github.com/renode/renode/tree/master/scripts/complex/socketcan_bridge).
+要查看 CAN 主机集成的实际应用，您可以尝试 [SocketCAN 桥接演示](https://github.com/renode/renode/tree/master/scripts/complex/socketcan_bridge) 。
 
-## Host requirements
+## 主机要求
 
-The bridge relies on SocketCAN to connect to a CAN interface, which includes native, virtual and SLCAN based interfaces.
-The examples below assume use of a virtual CAN interface, for which drivers are implemented in the `vcan` kernel module.
-To ensure that the module is present in the host, load it with:
+该桥接器依靠 SocketCAN 连接到 CAN 接口，其中包括本机、虚拟和基于 SLCAN 的接口。以下示例假定使用虚拟 CAN 接口，其驱动程序在 `vcan` 内核模块中实现。要确保 host 中存在该模块，请加载它：
 
 ```text
 $ sudo modprobe vcan
 ```
 
-To create and set up a virtual network interface named `vcan0`, run:
+要创建并设置名为 `vcan0` 的虚拟网络接口，请运行：
 
 ```text
 $ sudo ip link add dev vcan0 type vcan
@@ -29,44 +26,38 @@ $ sudo ip link set up vcan0
 ```
 
 ```{note}
-Depending on the Linux distribution, the `vcan` module may not be included, or it may not support FD and/or XL CAN frames.
+根据 Linux 发行版的不同，`vcan` 模块可能不包括在内，或者它可能不支持 FD 和/或 XL CAN 帧。
 ```
 
-## Creating a SocketCAN bridge
+## 创建 SocketCAN 网桥
 
-A SocketCAN bridge connects to an already existing CAN interface whose name can be provided as a `canInterfaceName` argument.
-If not provided, Renode will try to connect to the interface named `vcan0`.
+SocketCAN 网桥连接到已经存在的 CAN 接口，其名称可以作为 `canInterfaceName` 参数提供。如果未提供，Renode 将尝试连接到名为 `vcan0` 的接口。
 
-In the simulation the bridge can be connected to internal networks as described in {ref}`CAN-based connections <can-based-connections>`.
+在仿真中，网桥可以连接到内部网络，如{ref}`基于 CAN 的连接 <can-based-connections>`中所述。
 
-By default, Renode will try to enable handling of FD and XL CAN frames, but it won't require them.
-To force the use of a specified type, set the optional arguments `ensureFdFrames` and `ensureXlFrames` to `true`.
-By setting those, regardless of the creation method, the command or a platform construction will fail if the ensured frame type cannot be enabled.
+默认情况下，Renode 将尝试启用 FD 和 XL CAN 帧的处理，但不需要它们。要强制使用指定类型，请将可选参数 `ensureFdFrames` 和 `ensureXlFrames` 设置为 `true`。通过设置这些，无论创建方法如何，如果无法启用确保的框架类型，则命令或平台构建都将失败。
 
 ```{warning}
-Be careful about creating a cycle in your CAN network topology.
+在 CAN 网络拓扑中创建循环时要小心。
 
-The frames sent from one bridge can be received by another bridge via the common vcan interface.
-If those two bridges are part of the same network, then an infinite loop of packets may be created.
+从一个网桥发送的帧可以由另一个网桥通过通用 vcan 接口接收。如果这两个网桥属于同一网络，则可能会创建数据包的无限循环。
 ```
 
-### In the Monitor
+### 在 Monitor 中
 
-As mentioned above, there are two ways of creating a `SocketCANBridge`.
-The first option is to use the `CreateSocketCANBridge` command.
+如上所述，有两种方法可以创建 `SocketCANBridge`。第一个选项是使用 `CreateSocketCANBridge` 命令。
 
-For example, the following command will create a `SocketCANBridge` named `socketcan`, that connects to the `vcan1` interface and will fail if handling FD frames is not possible.
+例如，下面的命令将创建一个名为 `socketcan` 的 `SocketCANBridge`，它连接到 `vcan1` 接口，如果无法处理 FD 帧，它将失败。
 
 ```text
 (machine-0) machine CreateSocketCANBridge "socketcan" "vcan1" ensureFdFrames=true
 ```
 
-The bridge can be connected to CAN bus as described in {ref}`CAN-based connections <can-based-connections>`.
+该桥可以连接到 CAN 总线，如 {ref}`基于 CAN 的连接 <can-based-connections>` 中所述。
 
-### In the platform description
+### 在平台描述中
 
-Another option is to add a SocketCAN bridge declaration to a `repl` file.
-The following example presents a snippet that sets all the arguments of a `socketcan` instance of the `SocketCANBridge` with default values.
+另一种选择是将 SocketCAN bridge 声明添加到 `repl` 文件中。下面的示例展示了一个代码片段，该代码片段使用默认值设置 `SocketCANBridge` 的 `socketcan` 实例的所有参数。
 
 ```text
 socketcan: CAN.SocketCANBridge @ sysbus
@@ -75,4 +66,4 @@ socketcan: CAN.SocketCANBridge @ sysbus
     ensureXlFrames: false
 ```
 
-The bridge can be connected to CAN bus as described in {ref}`CAN-based connections <can-based-connections>`.
+该桥可以连接到 CAN 总线，如 {ref}`基于 CAN 的连接 <can-based-connections>` 中所述。

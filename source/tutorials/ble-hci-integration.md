@@ -1,24 +1,20 @@
-# BLE HCI integration with Renode
+# BLE HCI 与 Renode 的集成
 
-The Bluetooth Low Energy standard allows the use of different transports (e.g., UART, USB, SPI) for the HCI protocol.
-Integration with an external BLE controller via [HCI UART](https://github.com/zephyrproject-rtos/zephyr/blob/21f473aaecf087e357df19c78ae2bd60aed345dd/samples/bluetooth/hci_uart/README.rst) is supported in Renode and the integration can be used for testing the [BLE host stack in Zephyr RTOS](https://github.com/zephyrproject-rtos/zephyr/blob/21f473aaecf087e357df19c78ae2bd60aed345dd/doc/connectivity/bluetooth/bluetooth-arch.rst#build-types).
+低功耗蓝牙标准允许对 HCI 协议使用不同的传输方式（例如 UART、USB、SPI）。Renode 支持通过 [HCI UART](https://github.com/zephyrproject-rtos/zephyr/blob/21f473aaecf087e357df19c78ae2bd60aed345dd/samples/bluetooth/hci_uart/README.rst) 与外部 BLE 控制器集成，并且该集成可用于在 [Zephyr RTOS 中测试 BLE 主机堆栈](https://github.com/zephyrproject-rtos/zephyr/blob/21f473aaecf087e357df19c78ae2bd60aed345dd/doc/connectivity/bluetooth/bluetooth-arch.rst#build-types) 。
 
 ```{note}
-This tutorial was tested with [Zephyr 3.4.0](https://github.com/zephyrproject-rtos/zephyr/tree/zephyr-v3.4.0) and accompanying [Zephyr SDK 0.16.1](https://github.com/zephyrproject-rtos/sdk-ng/releases/tag/v0.16.1).
+本教程使用 [Zephyr 3.4.0](https://github.com/zephyrproject-rtos/zephyr/tree/zephyr-v3.4.0) 和随附的 [Zephyr SDK 0.16.1](https://github.com/zephyrproject-rtos/sdk-ng/releases/tag/v0.16.1) 进行了测试。
 ```
 
-## Integration with Android Emulator
+## 与 Android 模拟器集成
 
-[Android Emulator](https://developer.android.com/studio/emulator_archive) (a part of the [Android Studio IDE](https://developer.android.com/studio/intro) that can be also installed as a standalone tool) supports Bluetooth communication through the [netsim tool](https://cs.android.com/android/_/android/platform/tools/netsim/+/a31d6d4930154cf0f211b645667056520a2a7209:;bpv=0;bpt=0).
-It is possible to connect Zephyr's BLE host stack emulated in Renode to the channel of `netsim` to test communication between an Android device and an emulated board.
+[Android Emulator](https://developer.android.com/studio/emulator_archive)（[Android Studio IDE](https://developer.android.com/studio/intro) 的一部分，也可以作为独立工具安装）支持通过 [netsim 工具](https://cs.android.com/android/_/android/platform/tools/netsim/+/a31d6d4930154cf0f211b645667056520a2a7209:;bpv=0;bpt=0)进行蓝牙通信。可以将 Renode 中模拟的 Zephyr 的 BLE 主机堆栈连接到 `netsim` 的通道，以测试 Android 设备和模拟板之间的通信。
 
-### Building Zephyr samples for a BLE HCI demo
+### 为 BLE HCI 演示构建 Zephyr 示例
 
-You can find a complete list of Zephyr samples and demos in the [Zephyr Documentation](https://docs.zephyrproject.org/latest/samples/index.html), which describes in detail how to install and use the RTOS.
+您可以在 [Zephyr 文档中找到 Zephyr](https://docs.zephyrproject.org/latest/samples/index.html) 示例和演示的完整列表，其中详细介绍了如何安装和使用 RTOS。
 
-We will pick [nRF52840 DK](https://docs.zephyrproject.org/latest/boards/arm/nrf52840dk_nrf52840/doc/index.html) board as a sample target. 
-To be able to generate some Zephyr binaries on your system, complete the [Zephyr Getting Started Guide](https://docs.zephyrproject.org/latest/getting_started/index.html) first.
-Next, create a `nrf52840dk_nrf52840_ble_hci_uart.overlay` file in the `zephyr` directory. This file is used to assign the selected UART to the BLE HCI transport. This file should contain the following content:
+我们将选择 [nRF52840 DK](https://docs.zephyrproject.org/latest/boards/arm/nrf52840dk_nrf52840/doc/index.html) 板作为示例目标。为了能够在您的系统上生成一些 Zephyr 二进制文件，请先完成 [Zephyr 入门指南](https://docs.zephyrproject.org/latest/getting_started/index.html) 。接下来，在 `zephyr` 目录中创建一个 `nrf52840dk_nrf52840_ble_hci_uart.overlay` 文件。此文件用于将选定的 UART 分配给 BLE HCI 传输。此文件应包含以下内容：
 
 ```dts
 / {
@@ -32,10 +28,9 @@ Next, create a `nrf52840dk_nrf52840_ble_hci_uart.overlay` file in the `zephyr` d
 };
 ```
 
-In most cases, it is possible to create similar overlays for other boards that don't support BLE natively.
+在大多数情况下，可以为其他本身不支持 BLE 的板创建类似的叠加层。
 
-Now, you can use the following command to build the [peripheral_hr](https://docs.zephyrproject.org/latest/samples/bluetooth/peripheral_hr/README.html) sample for the nRF52840 DK.
-The sample is built with the HCI UART transport enabled:
+现在，您可以使用以下命令为 nRF52840 DK 构建 [peripheral_hr](https://docs.zephyrproject.org/latest/samples/bluetooth/peripheral_hr/README.html) 示例。该示例是在启用 HCI UART 传输的情况下构建的：
 
 ```sh
 west build -p auto -b nrf52840dk_nrf52840 -d hci_peripheral_hr samples/bluetooth/peripheral_hr -- \
@@ -44,49 +39,45 @@ west build -p auto -b nrf52840dk_nrf52840 -d hci_peripheral_hr samples/bluetooth
  -DDTC_OVERLAY_FILE=$PWD/nrf52840dk_nrf52840_ble_hci_uart.overlay
 ```
 
-The built binary should be located in `hci_peripheral_hr/zephyr/zephyr.elf`.
+构建的二进制文件应位于 中 `hci_peripheral_hr/zephyr/zephyr.elf` 。
 
-The configuration options used during build may vary depending on the emulated target board and any external BLE controller used during integration.
-See [the Zephyr RTOS documentation](https://docs.zephyrproject.org/latest/kconfig.html#!CONFIG_BT) for possible options.
+构建期间使用的配置选项可能会有所不同，具体取决于仿真目标板和集成期间使用的任何外部 BLE 控制器。有关可能的选项 [，请参阅 Zephyr RTOS 文档](https://docs.zephyrproject.org/latest/kconfig.html#!CONFIG_BT) 。
 
-To use these binaries in Renode, load your platform and expose the selected UART to the host via the socket terminal for integration with an external BLE controller:
+要在 Renode 中使用这些二进制文件，请加载您的平台并通过 socket 终端将选定的 UART 公开给主机，以便与外部 BLE 控制器集成：
 
 ```none
 (machine-0) emulation CreateServerSocketTerminal 3456 "ble_hci_uart" false
 (machine-0) connector Connect sysbus.uart1 ble_hci_uart
 ```
 
-You can also use the generic script for the `nrf52840dk_nrf52840` board that is distributed with Renode, you will just need to set some variables for port number (`$port`) and binary path (`$bin`) before loading the script.
-You can run this command from the command line:
+您还可以使用与 Renode 一起分发的 `nrf52840dk_nrf52840` 板的通用脚本，您只需在加载脚本之前为端口号 （`$port`） 和二进制路径 （`$bin`） 设置一些变量。您可以从命令行运行此命令：
 
 ```sh
 renode -e "$port=3456; $bin=@/home/user/zephyrproject/zephyr/hci_peripheral_hr/zephyr/zephyr.elf; i @scripts/complex/hci_uart/hci_uart.resc"
 ```
 
-If you try to run the emulation at this point, the Zephyr RTOS will assert a timeout due to a missing connection to the BLE controller.
-In the next step, you will learn how to connect to the BLE controller to run the full example.
+如果您尝试此时运行仿真，Zephyr RTOS 将由于缺少与 BLE 控制器的连接而断言超时。在下一步中，您将学习如何连接到 BLE 控制器以运行完整示例。
 
 ```{note}
-On Linux or macOS, you can also use a {doc}`pty terminal <../host-integration/uart>`.
+在 Linux 或 macOS 上，您还可以使用 [pty 终端](https://renode.readthedocs.io/en/latest/host-integration/uart.html) 。
 ```
 
-### Setting up Android Emulator
+### 设置 Android 模拟器
 
 ```{note}
-Android Emulator version 33.1.14 or later is required to test the Bluetooth integration.
+需要 Android Emulator 版本 33.1.14 或更高版本才能测试蓝牙集成。
 ```
 
-Before you can set up the Android emulator from the command line, you need to have the `Java Runtime Environment` installed on your system.
-To install the prerequisites on a Debian-based system, use the following command:
+在从命令行设置 Android 仿真器之前，您需要在系统上安装 `Java 运行时环境` 。要在基于 Debian 的系统上安装先决条件，请使用以下命令：
 
 ```sh
 sudo apt install default-jre unzip wget
 ```
 
-Now, you can run the following commands to set up Android Emulator:
+现在，您可以运行以下命令来设置 Android 模拟器：
 
 ```{note}
-You can set `BASE_PATH` to the directory, where you want to download Android SDK. 
+您可以将 `BASE_PATH` 设置为要下载 Android SDK 的目录。
 ```
 
 ```sh
@@ -133,69 +124,66 @@ export AVD_NAME_0=Android0
 echo "no" | avdmanager --verbose create avd -n $AVD_NAME_0 -k "system-images;android-34;google_apis;x86_64"
 ```
 
-This script downloads and installs the latest version of the Android SDK command-line tools and the Android Emulator.
-It also creates an Android Virtual Device (AVD) named `Android0` based on the Android API level 34 system image.
+此脚本下载并安装最新版本的 Android SDK 命令行工具和 Android 模拟器。它还会根据 Android API 级别 34 系统映像创建名为 `Android0` 的 Android 虚拟设备 （AVD）。
 
-### Running Renode and Android Emulator together
+### 一起运行 Renode 和 Android Emulator
 
-To transfer HCI packets from the socket terminal created in Renode to the virtual controller in Android, you need to use [bumble](https://google.github.io/bumble/) to decode the gRPC protocol (used by Android Emulator for communication) messages to HCI commands.
+要将 HCI 数据包从在 Renode 中创建的套接字终端传输到 Android 中的虚拟控制器，您需要使用 [bumble](https://google.github.io/bumble/) 将 gRPC 协议（Android Emulator 用于通信）消息解码为 HCI 命令。
 
 ```{note}
-Don't install `bumble` inside a conda environment, because `socket` module distributed with Anaconda doesn't support Bluetooth sockets.
-It will cause an exception while trying to bind to HCI socket:
+不要在 conda 环境中安装 `bumble`，因为与 Anaconda 一起分发的`套接字`模块不支持蓝牙套接字。尝试绑定到 HCI 套接字时会导致异常：
 
     AttributeError: module 'socket' has no attribute 'AF_BLUETOOTH'
     Exception: Bluetooth HCI sockets not supported on this platform
 
-You can use:
+You can use:  您可以使用：
 
     pipx install git+https://github.com/google/bumble.git@8eeb58e467 
 
-to install it in an isolated environment.
+将其安装在隔离的环境中。
 ```
 
-Install the `bumble` module:
+安装 `bumble` 模块：
 
 ```sh
 python -m pip install git+https://github.com/google/bumble.git@8eeb58e467
 ```
 
-To see, if `bumble-hci-bridge` is available as a global tool, run:
+要查看 `bumble-hci-bridge` 是否可用作全局工具，请运行：
 
 ```sh
 bumble-hci-bridge --help
 ```
 
-Run Android Emulator:
+运行 Android 模拟器：
 
 ```sh
 emulator -avd Android0 -accel auto -gpu auto
 ```
 
-Now, you can establish a connection between the Renode device configured in the previous step and the Android emulator using `bumble-hci-bridge`:
+现在，您可以使用 `bumble-hci-bridge` 在上一步中配置的 Renode 设备和 Android 模拟器之间建立连接：
 
 ```sh
 bumble-hci-bridge tcp-client:127.0.0.1:3456 android-netsim 0x03:0x0031,0x08:0x013,0x08:0x032,0x08:0x016,0x03:0x035
 ```
 
-To connect Renode with Android Emulator:
+要将 Renode 与 Android 模拟器连接：
 
-1. Start Renode simulation (your platform should connect to the HCI bridge created earlier).
-2. On an emulated Android device, open the Chrome browser and go to https://webbluetoothcg.github.io/demos/heart-rate-sensor/.
-3. Click on the page and grant permission for Bluetooth access.
+1. 启动 Renode 模拟（您的平台应连接到之前创建的 HCI 网桥）。
+2. 在模拟的 Android 设备上，打开 Chrome 浏览器并转到 https://webbluetoothcg.github.io/demos/heart-rate-sensor/。
+3. 单击页面并授予蓝牙访问权限。
 
-You should be able to see and connect to a BLE peripheral emulated in Renode as shown below.
+您应该能够查看并连接到在 Renode 中模拟的 BLE 外设，如下所示。
 
 ![https://webbluetoothcg.github.io/demos/heart-rate-sensor/](img/ble_hci_chrome_heart_rate_monitor.png) ![Connect BLE peripheral](img/ble_hci_chrome_heart_rate_monitor_connect.png) ![Connected BLE peripheral](img/ble_hci_chrome_heart_rate_monitor_connected.png)
 
-## Bluetooth Mesh networking
+## 蓝牙 Mesh 组网
 
-The Zephyr BLE stack provides support for the BLE Mesh protocol.
-You can create a virtual Mesh network with multiple Renode instances emulating separate BLE devices.
+Zephyr BLE 堆栈提供对 BLE Mesh 协议的支持。您可以创建具有多个 Renode 实例的虚拟网状网络，这些实例模拟单独的 BLE 设备。
 
-### Building the Zephyr BLE Mesh sample
+### 构建 Zephyr BLE Mesh 示例
 
-Build the [`mesh` sample](https://github.com/zephyrproject-rtos/zephyr/tree/zephyr-v3.4.0/samples/bluetooth/mesh) that will be loaded in Renode for the `nrf52840dk_nrf52840` platform as follows:
+构建将在 Renode 中为 `nrf52840dk_nrf52840` 平台加载的[`网格`示例](https://github.com/zephyrproject-rtos/zephyr/tree/zephyr-v3.4.0/samples/bluetooth/mesh) ，如下所示：
 
 ```sh
 west build -p auto -b nrf52840dk_nrf52840 -d hci_mesh samples/bluetooth/mesh -- \
@@ -205,26 +193,23 @@ west build -p auto -b nrf52840dk_nrf52840 -d hci_mesh samples/bluetooth/mesh -- 
  -DDTC_OVERLAY_FILE=$PWD/nrf52840dk_nrf52840_ble_hci_uart.overlay
 ```
 
-The built binary should be located in `hci_mesh/zephyr/zephyr.elf`.
+构建的二进制文件应位于 `hci_mesh/zephyr/zephyr.elf` 中。
 
-### Integration with an external BLE controller
+### 与外部 BLE 控制器集成
 
-On the host side, you can use tools that provide support for connecting to either physical or virtual BLE controllers: `btvirt` and `btproxy` from [BlueZ](https://github.com/bluez) or `bumble-hci-bridge` and `bumble-link-relay` from [bumble](https://github.com/google/bumble).
+在主机端，您可以使用支持连接到物理或虚拟 BLE 控制器的工具：[BlueZ](https://github.com/bluez) 的 `btvirt` 和 `btproxy` 或 `bumble 的 bumble-hci-bridge` 和 `bumble-link-relay`。
 
-The BlueZ use case is described in [Using BlueZ with Zephyr](https://docs.zephyrproject.org/latest/connectivity/bluetooth/bluetooth-tools.html#using-bluez-with-zephyr) and various aspects of BLE integration are well documented in the [bumble project](https://google.github.io/bumble/platforms/index.html), which provides solutions to many [common problems](https://google.github.io/bumble/platforms/linux.html) with permissions.
+[将 BlueZ 与 Zephyr 结合使用中描述了 BlueZ](https://docs.zephyrproject.org/latest/connectivity/bluetooth/bluetooth-tools.html#using-bluez-with-zephyr) 用例，并且 BLE 集成的各个方面在 [bumble 项目中](https://google.github.io/bumble/platforms/index.html)都有详细记录，该项目为许多[常见的权限问题](https://google.github.io/bumble/platforms/linux.html)提供了解决方案。
 
-### Creating virtual controllers
+### 创建虚拟控制器
 
 ```{note}
-This part depends on BlueZ and the `/dev/vhci` device on the host system, so it is limited to Linux hosts.
-On other systems, you can test it in a Linux virtual machine.
-If you want to run these steps in a Docker container, it should be started with the following flags `--device=/dev/vhci --net=host --cap-add=CAP_NET_ADMIN`. 
+这部分依赖于 BlueZ 和主机系统上的 `/dev/vhci` 设备，因此仅限于 Linux 主机。在其他系统上，您可以在 Linux 虚拟机中对其进行测试。如果要在 Docker 容器中运行这些步骤，则应使用以下标志启动 `--device=/dev/vhci --net=host --cap-add=CAP_NET_ADMIN` 它。
 ```
 
-`btvirt` tool is part of [`bluez-tests` on Ubuntu](https://packages.ubuntu.com/kinetic/amd64/bluez-tests/filelist) and [`bluez-test-tools` on Debian](https://packages.debian.org/bullseye/amd64/bluez-test-tools/filelist).
-It can be installed using `apt` package manager.
+`btvirt` 工具是 [Ubuntu 上的 `bluez-tests`](https://packages.ubuntu.com/kinetic/amd64/bluez-tests/filelist) 和 [Debian 上的 `bluez-test-tools`](https://packages.debian.org/bullseye/amd64/bluez-test-tools/filelist) 的一部分。可以使用 `apt` 包管理器安装它。
 
-To build `bluez` from source on a Debian-based system:
+要在基于 Debian 的系统上从源代码构建 `bluez`：
 
 ```sh
 sudo apt update
@@ -246,21 +231,15 @@ cd bluez-5.68
 make -j$(nproc)
 ```
 
-When built from source, `btvirt` is located in the `emulator` directory.
+从源代码构建时，`btvirt` 位于 `emulator` 目录中。
 
-The number of virtual Bluetooth controllers that can be created with `btvirt` is limited to 16 devices by default.
-If you'd like to use Renode to simulate a BLE Mesh network consisting of more devices, you can increase the compile time constant [MAX_BTDEV_ENTRIES](https://github.com/bluez/bluez/blob/5.68/emulator/btdev.c#L251) and rebuild BlueZ.
-If you want to exceed 128 virtual devices, you should also increase another constant [MAX_MAINLOOP_ENTRIES](https://github.com/bluez/bluez/blob/5.68/src/shared/mainloop.c#L47).
+默认情况下，可以使用 `btvirt` 创建的虚拟蓝牙控制器的数量限制为 16 个设备。如果您想使用 Renode 来模拟由更多设备组成的 BLE Mesh 网络，您可以增加编译时间常[数 MAX_BTDEV_ENTRIES](https://github.com/bluez/bluez/blob/5.68/emulator/btdev.c#L251) 并重建 BlueZ。如果要超过 128 个虚拟设备，则还应增加另一个常[数 MAX_MAINLOOP_ENTRIES](https://github.com/bluez/bluez/blob/5.68/src/shared/mainloop.c#L47)。
 
 ```{note}
-Commands used in this tutorial assume that you don't have any HCI interfaces available on your system.
-You can verify it with the `hciconfig` command.
-If an HCI interface is already registered, use the appropriate index in `hci-socket:<i>` to account for it.
-The `btvirt` command creates HCI for virtual controller.
-You can check the created interfaces with `hciconfig`.
+本教程中使用的命令假定您的系统上没有任何可用的 HCI 接口。您可以使用 `hciconfig` 命令进行验证。如果已注册 HCI 接口，请使用 `hci-socket：<i>` 中的相应索引来说明它。`btvirt` 命令为虚拟控制器创建 HCI。您可以使用 `hciconfig` 检查创建的接口。
 ```
 
-To create a BLE Mesh network consisting of three devices simulated in Renode communicating each-to-each symmetrically, run the following commands in separate terminals:
+要创建一个由 Renode 中模拟的三个设备组成的 BLE Mesh 网络，这些设备在 Renode 中相互对称通信，请在单独的终端中运行以下命令：
 
 ```sh
 $ sudo btvirt -d -l3
@@ -272,9 +251,7 @@ $ sudo capsh --caps="cap_net_admin+eip cap_setpcap,cap_setuid,cap_setgid+ep" --k
 $ sudo capsh --caps="cap_net_admin+eip cap_setpcap,cap_setuid,cap_setgid+ep" --keep=1 --user=\$USER --addamb=cap_net_admin  -- -c "\$(which bumble-hci-bridge) tcp-client:127.0.0.1:3458 hci-socket:2"
 ```
 
-You can call `hciconfig` to make sure that virtual HCIs were created by `btvirt`.
-You should see HCIs that belong to virtual bus (`Bus: Virtual`).
-They disappear after you kill the `btvirt` process.
+您可以调用 `hciconfig` 来确保虚拟 HCI 是由 `btvirt` 创建的。您应该会看到属于虚拟总线 （`Bus： Virtual`） 的 HCI。它们在您终止 `btvirt` 进程后消失。
 
 ```none
 hci2:	Type: Primary  Bus: Virtual
@@ -297,14 +274,12 @@ hci0:	Type: Primary  Bus: Virtual
 ```
 
 ```{note}
-To be able to test the alternative Zephyr BLE stack running in Renode, make sure to [disable the Bluetooth service](https://github.com/google/bumble/blob/v0.0.161/docs/mkdocs/src/platforms/linux.md#using-hci-sockets).
-To see the status of the Bluetooth service on a Debian-based system, run `sudo systemctl status bluetooth`.
+为了能够测试在 Renode 中运行的替代 Zephyr BLE 堆栈，请确保[禁用蓝牙服务](https://github.com/google/bumble/blob/v0.0.161/docs/mkdocs/src/platforms/linux.md#using-hci-sockets) 。要查看基于 Debian 的系统上蓝牙服务的状态，请运行 `sudo systemctl status bluetooth` 。
 
-In some cases, you may need to use `sudo rfkill unblock all` to unblock your Bluetooth wireless device.
+在某些情况下，您可能需要使用 `sudo rfkill unblock all` 来取消阻止您的蓝牙无线设备。
 ```
 
-Alternatively, you can connect virtual HCI to Renode using the `socat` relay tool and `btproxy`, which is available in the `tools` directory when BlueZ is built from source.
-You can use these commands if you do not want to assign temporary extended capabilities to the `bumble-hci-bridge` Python program.
+或者，您可以使用 `socat` 中继工具和 `btproxy` 将虚拟 HCI 连接到 Renode，当 BlueZ 从源代码构建时， `该工具位于 tools` 目录中。如果您不想为 `bumble-hci-bridge` Python 程序分配临时扩展功能，则可以使用这些命令。
 
 ```sh
 $ sudo btvirt -d -l3
@@ -320,20 +295,20 @@ $ socat TCP-CONNECT:127.0.0.1:3458 UNIX-CONNECT:/tmp/bt-server-bredr2
 ```
 
 ```{note}
-You may use TCP server instead of Unix server in `btproxy` with slightly modified commands:
+您可以在 `btproxy` 中使用 TCP 服务器而不是 Unix 服务器，但命令略有修改：
 
     sudo ./tools/btproxy -l127.0.0.1 -p1000 -i 0
     socat TCP-CONNECT:127.0.0.1:3456 TCP-CONNECT:127.0.0.1:1000
 ```
 
-Next:
+下一个：
 
-1. Start the Renode simulation (your platform should connect to the HCI bridge you created earlier).
-2. Enter `gpio0.sw0 PressAndRelease` in Renode's monitor for each Renode instance to provision BLE devices to Mesh network.
-3. All successive button presses (`gpio0.sw0 PressAndRelease`) will cause the message to be sent to other nodes in the network and `led0` blinking on all boards.
-4. You can watch `led0` state in Renode's monitor with command `watch "gpio0.led0 State" 200`, which prints the led state every 200 milliseconds.
+1. 启动 Renode 模拟（您的平台应连接到您之前创建的 HCI 网桥）。
+2. 在 Renode 的监视器中为每个 Renode 实例输入 `gpio0.sw0 PressAndRelease`，以将 BLE 设备配置到 Mesh 网络。
+3. 所有连续的按钮按下 （`gpio0.sw0 PressAndRelease`） 将导致消息发送到网络中的其他节点，并且 `led0` 在所有电路板上闪烁。
+4. 您可以使用 `watch “gpio0.led0 State” 200` 命令在 Renode 的监视器中观察 `led0` 状态，该命令每 200 毫秒打印一次 LED 状态。
 
-The following messages should be printed on the `uart0` console:
+应在 `uart0` 控制台上打印以下消息：
 
 ```none
 *** Booting Zephyr OS build zephyr-v3.3.0 ***
@@ -354,30 +329,30 @@ set: off delay: 0 ms time: 0 ms
 set: on delay: 0 ms time: 0 ms
 ```
 
-BLE devices are emulated in separate Renode instances and communicate in a virtual network through the virtual HCI interfaces owned by the Linux operating system. You can observe traffic on these interfaces in Wireshark using HCI protocol dissector.
+BLE 设备在单独的 Renode 实例中仿真，并通过 Linux 作系统拥有的虚拟 HCI 接口在虚拟网络中进行通信。您可以使用 HCI 协议剖析器在 Wireshark 中观察这些接口上的流量。
 
-If you have multiple computers with physical BLE controller (either USB BLE adapter or built-in BLE module), you can use Renode to emulate BLE devices on different computers and make them communicate in BLE Mesh network to achieve real physical arrangement.
+如果您有多台带有物理 BLE 控制器（USB BLE 适配器或内置 BLE 模块）的计算机，您可以使用 Renode 模拟不同计算机上的 BLE 设备，并使它们在 BLE Mesh 网络中进行通信，以实现真正的物理布置。
 
-### Integration with a physical BLE controller
+### 与物理 BLE 控制器集成
 
-An external USB BLE adapter (you can build one from [Zephyr HCI USB sample](https://github.com/zephyrproject-rtos/zephyr/blob/zephyr-v3.4.0/samples/bluetooth/hci_usb/README.rst)) or a built-in BLE module can be used for integration.
+可以使用外部 USB BLE 适配器（您可以从 [Zephyr HCI USB 示例](https://github.com/zephyrproject-rtos/zephyr/blob/zephyr-v3.4.0/samples/bluetooth/hci_usb/README.rst)构建一个）或内置 BLE 模块进行集成。
 
-To establish a connection between Renode and the USB BLE adapter using `bumble-hci-bridge`:
+要使用 `bumble-hci-bridge` 在 Renode 和 USB BLE 适配器之间建立连接：
 
 ```sh
 bumble-hci-bridge tcp-client:127.0.0.1:3456 usb:0
 ```
 
 ```{note}
-You may need to change the permissions for the USB device to [access it as a regular user](https://github.com/google/bumble/blob/v0.0.161/docs/mkdocs/src/platforms/linux.md#using-a-usb-dongle).
+您可能需要更改 USB 设备的权限才能[以普通用户身份访问它](https://github.com/google/bumble/blob/v0.0.161/docs/mkdocs/src/platforms/linux.md#using-a-usb-dongle) 。
 ```
 
-You can connect directly to the HCI socket if the kernel has already registered an interface:
+如果内核已经注册了一个接口，则可以直接连接到 HCI 套接字：
 
 ```sh
 sudo capsh --caps="cap_net_admin+eip cap_setpcap,cap_setuid,cap_setgid+ep" --keep=1 --user=\$USER --addamb=cap_net_admin  -- -c "$(which bumble-hci-bridge) tcp-client:127.0.0.1:3456 hci-socket:0"
 ```
 
 ```{note}
-Do not start the emulation until the bridge is configured, otherwise the BLE host stack may timeout due to lack of connection to the BLE controller.
+在配置网桥之前不要启动仿真，否则 BLE 主机堆栈可能会因缺少与 BLE 控制器的连接而超时。
 ```

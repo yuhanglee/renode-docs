@@ -1,29 +1,29 @@
-# Machine to machine connections
+# 机器到机器的连接
 
-There are various ways of connecting two machines in Renode.
-Other than {doc}`wired <wired>` and {doc}`wireless <wireless>` networking (decribed in their own chapters), there are several other interfaces available, divided into two categories:
 
-- {ref}`Symmetrical, like UART or CAN<symmetrical-connections>`,
-- {ref}`Asymmetrical, like GPIO or USB<asymmetrical-connections>`.
+在 Renode 中有多种方法可以连接两台机器。除了{doc}`wired <wired>`和 {doc}`wireless <wireless>` （在各自的章节中描述）之外，还有其他几种接口可用，分为两类：
+
+
+- {ref}`对称的，如 UART 或 CAN<symmetrical-connections>`,
+- {ref}`非对称的，如 GPIO 或 USB<asymmetrical-connections>`.
 
 (symmetrical-connections)=
 
-## Symmetrical connections
+## 对称连接
 
-In Renode, connections like UART and CAN are always symmetrical, meaning each side can be either the initiator or the recipient of a transfer.
-A symmetrical connection is represented by a "hub" object to which the communicating machines need to be connected.
+在 Renode 中，UART 和 CAN 等连接始终是对称的，这意味着每一方都可以是传输的发起者或接收者。对称连接由一个 “hub” 对象表示，通信机器需要连接到该对象。
 
-### UART-based connections
+### 基于 UART 的连接
 
-To connect two UART devices, you need to create a UART hub, which can be created in the Monitor by executing:
+要连接两个 UART 设备，您需要创建一个 UART 集线器，可以通过执行以下命令在 Monitor 中创建：
 
 ```none
 (monitor) emulation CreateUARTHub "uartHub"
 ```
 
-The UART hub created by this line is named `uartHub`, but you can use any name.
+此行创建的 UART 集线器名为 `uartHub`，但您可以使用任何名称。
 
-Then, you have to connect your UART devices to the common UART hub using the `connector` mechanism:
+然后，您必须使用`连接器`机制将 UART 设备连接到公共 UART 集线器：
 
 ```none
 (monitor) mach set 0
@@ -32,59 +32,55 @@ Then, you have to connect your UART devices to the common UART hub using the `co
 (machine-1) connector Connect sysbus.uart uartHub
 ```
 
-To disconnect a device from the `uartHub`, execute:
+要断开设备与 `uartHub` 的连接，请执行：
 
 ```none
 (machine-1) connector Disconnect sysbus.uart uartHub
 ```
 
-The UART hub is created in a paused state, which means it won't transfer any data between devices.
-To enable communication, you must start your hub.
+UART 集线器在创建时处于暂停状态，这意味着它不会在设备之间传输任何数据。要启用通信，您必须启动您的中心。
 
-For simplicity, in the default scenario your `uartHub` will start automatically when starting the whole simulation:
+为简单起见，在默认情况下，您的 `uartHub` 将在开始整个模拟时自动启动：
 
 ```none
 (monitor) start
 ```
 
-In case you need to start your `uarthub` manually (e.g. when adding it to a running simulation):
+如果您需要手动启动您的 `uarthub`（例如，将其添加到正在运行的模拟时）：
 
 ```none
 (monitor) uartHub Start
 ```
 
-Now, data sent by `sysbus.uart` on `machine-0` will be received by `sysbus.uart` on `machine-1` and vice versa.
+现在，`machine-0` 上的 `sysbus.uart` 发送的数据将由 `machine-1` 上的 `sysbus.uart` 接收，反之亦然。
 
-Your hub can be paused at any moment by executing:
+可以通过执行以下命令随时暂停 hub：
 
 ```none
 (monitor) uartHub Pause
 ```
 
-It can then be resumed using:
+然后可以使用以下方法恢复它：
 
 ```none
 (monitor) uartHub Resume
 ```
 
-In order to ensure the determinism of the simulation, bytes sent over an uartHub are buffered and delivered to the receiver at set times.
-Please note that this might lead to slight delays in communication.
-The maximum delay is controllable by the `quantum` parameter.
-For details on how the synchronization works and how to configure it, refer to [the Time framework synchronization section](../advanced/time_framework.md#synchronization) of the documentation.
+为了确保仿真的确定性，通过 uartHub 发送的字节被缓冲并在设定的时间传送给接收器。请注意，这可能会导致通信略有延迟。最大延迟可由 `quantum` 参数控制。有关同步的工作原理和配置方法的详细信息，请参阅文档的时间[框架同步部分](../advanced/time_framework.md#synchronization) 。
 
 (can-based-connections)=
 
-### CAN-based connections
+### 基于 CAN 的连接
 
-Connecting two machines with the CAN bus is very similar to connecting them with a UART.
+用 CAN 总线连接两台机器与用 UART 连接它们非常相似。
 
-First, you need to create a CAN hub in the Monitor:
+首先，您需要在 Monitor 中创建一个 CAN 集线器：
 
 ```none
 (monitor) emulation CreateCANHub "canHub"
 ```
 
-Then, you have to connect both of your devices to the CAN Hub using the `connector` mechanism:
+然后，您必须使用`连接器`机制将两个设备都连接到 CAN Hub：
 
 ```none
 (monitor) mach set 0
@@ -93,40 +89,35 @@ Then, you have to connect both of your devices to the CAN Hub using the `connect
 (machine-1) connector Connect sysbus.can canHub
 ```
 
-To disconnect a device from the `CANHub`, execute:
+要断开设备与 `CANHub` 的连接，请执行：
 
 ```none
 (machine-1) connector Disconnect sysbus.can canHub
 ```
 
 ```{note}
-Similar to the UART Hub, the CAN Hub can be freely started, paused, and resumed using the same commands.
+与 UART Hub 类似，CAN Hub 可以使用相同的命令自由启动、暂停和恢复。
 ```
 
 (asymmetrical-connections)=
 
-## Asymmetrical connections
+## 非对称连接
 
-In Renode, GPIO and USB connections are always asymmetrical.
-This requires you to specify which machine is the `controller` and which is the `peripheral`.
+在 Renode 中，GPIO 和 USB 连接始终是不对称的。这需要您指定哪台计算机是`控制器` ，哪台计算机是`外围设备` 。
 
-### GPIO connections
+### GPIO 连接
 
-GPIO connections in Renode allow you to send a boolean signal (`true` or `false`) between GPIO pins of two machines.
-The `GPIOConnector` object represents a unidirectional GPIO connection with a source and destination, which is why GPIO is listed as an asymmetrical connection method.
-However, you can create two `GPIOConnector` objects with reversed source and destination in order to effectively get a bidirectional connection.
+Renode 中的 GPIO 连接允许您在两台机器的 GPIO 引脚之间发送布尔信号（`true` 或 `false`）。`GPIOConnector` 对象表示与源和目标的单向 GPIO 连接，这就是 GPIO 被列为非对称连接方法的原因。但是，您可以创建两个源和目标相反的 `GPIOConnector` 对象，以便有效地获得双向连接。
 
-To create a `GPIOConnector`, use:
+要创建 `GPIOConnector`，请使用：
 
 ```none
 (monitor) emulation CreateGPIOConnector "gpio-con"
 ```
 
-You can connect a maximum of two machines to your `GPIO Connector`, one being `INumber GPIO Output` and the other being `IGPIOReceiver`.
-Trying to connect more will always result in an error.
+您最多可以将两台机器连接到您的 `GPIO 连接器` ，一台是 `INumber GPIO Output`，另一台是 `IGPIOReceiver`。尝试连接更多总是会导致错误。
 
-Next, you need to select GPIO pins available in the machines you want to use in the connection.
-In the example below, we chose to use pin 7 in the `source` machine and pin 4 in the `destination` machine.
+接下来，您需要选择要在连接中使用的机器中可用的 GPIO 引脚。在下面的示例中，我们选择在`源`计算机中使用引脚 7，在`目标`计算机中使用引脚 4。
 
 ```none
 (monitor) mach set "source"
@@ -139,21 +130,18 @@ In the example below, we chose to use pin 7 in the `source` machine and pin 4 in
 ```
 
 ```{note}
-Keep in mind that the signal can only be sent from the `SourcePin` to the `DestinationPin`.
-To create a connection working the other way around, please create another `GPIOConnector`.
+请记住，信号只能从 `SourcePin` 发送到 `DestinationPin`。要创建反向连接，请创建另一个 `GPIOConnector`。
 ```
 
-### USB connections
+### USB 连接
 
-To be able to create a USB connection between two machines in Renode, first, you need to create a `USBConnector`.
+为了能够在 Renode 中的两台机器之间创建 USB 连接，首先，您需要创建一个 `USBConnector`。
 
 ```none
 (monitor) emulation CreateUSBConnector "usb-connector"
 ```
 
-In this type of connection, your machines are assigned the `device` or `controller` role.
-Like in the other connection types, you need to use a `connector` mechanism to connect the `usb-connector` to the USB port on your machine.
-Your device then has to be registered in the `controller` device and connected to its USB.
+在这种类型的连接中，您的计算机被分配了`设备`或`控制器`角色。与其他连接类型一样，您需要使用`连接器`机制将 `USB 连接器`连接到计算机上的 USB 端口。然后，您的设备必须在`控制器`设备中注册并连接到其 USB。
 
 ```none
 (monitor) mach set "device"
@@ -163,17 +151,15 @@ Your device then has to be registered in the `controller` device and connected t
 (controller) usb-connector RegisterInController sysbus.usb-controller
 ```
 
-## Modeling the timing of the events
+## 对事件的时间进行建模
 
-Some models require an event to happen at a specified moment in time (e.g. some time after the other event).
-To achieve this, you can use various mechanisms:
+某些模型要求事件在指定时刻发生（例如，另一个事件之后的某个时间）。为此，您可以使用各种机制：
 
-- implementing a `LimitTimer` in a peripheral, that can execute actions periodically.
-  This is used mainly, but not only, for implementing timer logic,
-- `machine.LocalTimeSource.ExecuteInNearestSyncedState` to delay an event by some amount of time, which is not clearly specified,
-- `machine.LocalTimeSource.ExecuteInSyncedState`, which gives you more control over the specific time at which the event should happen,
-- `machine.ObtainManagedThread`, which is the easiest way to execute actions at a specified frequency.
+- 在外设中实现一个 `LimitTimer`，它可以定期执行 action。这主要用于实现定时器逻辑
+- `machine.LocalTimeSource.ExecuteInNearestSyncedState` 将事件延迟一段时间，但未明确指定
+- `machine.LocalTimeSource.ExecuteInSyncedState`, 这使您可以更好地控制事件发生的具体时间
+- `machine.ObtainManagedThread`, 这是以指定频率执行作的最简单方法
 
-All of these mechanisms are handled by the machine and its time source, so that the logic is hidden from the peripheral model.
+所有这些机制都由机器及其时间源处理，因此 logic 对 peripheral model 是隐藏的。
 
-More detailed information about the Time framework in Renode can be found in the relevant chapter: {doc}`Time framework <../advanced/time_framework>`.
+有关 Renode 中 Time 框架的更多详细信息，请参见相关章节： {doc}`Time framework <../advanced/time_framework>`

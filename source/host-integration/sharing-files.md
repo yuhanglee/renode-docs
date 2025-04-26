@@ -1,42 +1,39 @@
-# Sharing files between host and simulated platform
+# 在主机和模拟平台之间共享文件
 
-Renode has 4 main methods of file sharing between the guest and the host:
+Renode 有 4 种主要方法可以在 guest 和 host 之间共享文件：
 
 1.  VirtIO block device,
 2.  directory sharing,
 3.  built-in TFTP server,
-4.  [file transfer via the TAP interface](../networking/host-network.md).
+4.  [file transfer via the TAP interface](../networking/host-network.md).  [通过 TAP 接口传输文件](../networking/host-network.md)
 
-Tutorial on TAP-based transfers can be found in [the chapter on host-guest networking](../networking/host-network.md).
-To achieve the best performance and portability it is recommended to use TFTP or VirtIO.
+有关基于 TAP 的传输的教程，请参阅[主机-来宾网络一章](../networking/host-network.md)。为了获得最佳性能和可移植性，建议使用 TFTP 或 VirtIO。
 
-## Sharing files using VirtIO block device
+## 使用 VirtIO 块设备共享文件
 
-VirtIO is a widely used standard for virtualized devices supported in modern OSes.
-Advantages of using VirtIO to share files in Renode:
+VirtIO 是现代作系统中支持的虚拟化设备广泛使用的标准。使用 VirtIO 在 Renode 中共享文件的优势：
 
-- ubiquity of drivers available for various guest OSes,
-- support for the MMIO-based VirtIO block and filesystem device model,
-- no need for having a platform-specific network controller modeled in Renode,
-- faster transfer compared to simulated network transfers.
+- 无处不在的驱动程序可用于各种来宾作系统
+- 无处不在的驱动程序可用于各种来宾作系统，
+- 无需在 Renode 中建模特定于平台的网络控制器
+- 与模拟网络传输相比，传输速度更快
 
-To use VirtIO block device you need to prepare the filesystem image and fill it with the resources of your choice.
-Start by preparing a directory with files you want to constitute your filesystem.
+要使用 VirtIO 块设备，您需要准备文件系统镜像并使用您选择的资源填充它。首先准备一个目录，其中包含要构成文件系统的文件。
 
-On Linux you can create a filesystem with:
+在 Linux 上，您可以使用以下命令创建文件系统：
 
 ```sh
 $ truncate drive.img -s 128MB
 $ mkfs.ext4 -d your-directory drive.img
 ```
 
-Then you need to add the VirtIO block device support to the simulated Linux and the virtual platform in Renode.
+然后，您需要将 VirtIO 块设备支持添加到模拟的 Linux 和 Renode 中的虚拟平台。
 
 :::{note}
-Since Linux v2.6.25 VirtIO drivers are supported and should be enabled by default (check the CONFIG_VIRTIO, CONFIG_VIRTIO_MMIO and CONFIG_VIRTIO_BLK configuration options).
+由于 Linux v2.6.25 支持 VirtIO 驱动程序，并且应该默认启用（检查 CONFIG_VIRTIO、CONFIG_VIRTIO_MMIO 和 CONFIG_VIRTIO_BLK 配置选项）。
 :::
 
-To enable VirtIO, add a device tree entry describing device bus location and interrupt configuration:
+要启用 VirtIO，请添加一个描述设备总线位置和中断配置的设备树条目：
 
 ```dts
 virtio@100d0000 {
@@ -47,7 +44,7 @@ virtio@100d0000 {
 };
 ```
 
-Now you need to add a corresponding extension to the Renode platform definition (the `.repl` file):
+现在，您需要向 Renode 平台定义（`.repl` 文件）添加相应的扩展名：
 
 ```none
 virtio: Storage.VirtIOBlockDevice @ sysbus 0x100d0000
@@ -55,49 +52,45 @@ virtio: Storage.VirtIOBlockDevice @ sysbus 0x100d0000
 ```
 
 :::{note}
-Addresses and interrupt line number must be consistent across `.repl` and DTS.
+地址和中断行号在 `.repl` 和 DTS 之间必须一致。
 :::
 
-You can set up an underlying image for the VirtIO block device by using:
+您可以使用以下方法为 VirtIO 块设备设置底层镜像：
 
 ```none
 virtio LoadImage @drive.img
 ```
 
-By default, Renode loads the image in a non-persistent mode. If you want to make the VirtIO block device persistent add the `true` argument at the end of the command:
+默认情况下，Renode 以非持久模式加载映像。如果你想让 VirtIO 块设备持久化，请在命令末尾添加 `true` 参数：
 
 ```none
 virtio LoadImage @drive.img true
 ```
 
-You can use standard tools like `dd` or `mount` the device to get access to it.
-By default, the VirtIO device is listed in the emulated Linux as `/dev/vda`.
+您可以使用 `dd` 等标准工具或`挂载`设备来访问它。默认情况下，VirtIO 设备在模拟 Linux 中列为 `/dev/vda`。
 
-## Directory sharing
+## 目录共享
 
-Directory sharing functionality is available when using VirtIO filesystem device.
+目录共享功能在使用 VirtIO 文件系统设备时可用。
 
-This device enables directory sharing between the guest and host.
-Advantages of using this feature:
+此设备支持客户机和主机之间的目录共享。使用此功能的优点：
 
-- real time host and guest file transfer
-- no need to restart the machine to upload new files
-- no need to repack images or filesystems
+- 实时主机和客户机文件传输
+- 无需重新启动计算机即可上传新文件
+- 无需重新打包映像或文件系统
 
 ### Libfuse
 
-Sharing directory on the host is performed with the use of FUSE filesystem daemon, which handles requests on the directory from Renode.
-The shared directory must be a FUSE filesystem connected via a Unix domain socket.
-A passthrough filesystem has been prepared to use with this device with use of libfuse library.
+主机上的共享目录是使用 FUSE 文件系统守护程序执行的，该守护程序处理来自 Renode 的对目录的请求。共享目录必须是通过 Unix 域套接字连接的 FUSE 文件系统。已准备了一个直通文件系统，以便使用 libfuse 库与此设备一起使用。
 
-### Installation
+### 安装
 
-**Requirements**:
+**要求** ：
 
 - [Meson](http://mesonbuild.com/)
 - [Ninja](https://ninja-build.org/)
 
-Filesystem daemon installation:
+文件系统守护程序安装：
 
 ```sh
 $ git clone https://github.com/antmicro/libfuse --branch passthrough-hp-uds
@@ -107,17 +100,15 @@ $ meson setup ..
 $ ninja
 ```
 
-Filesystem daemon binary will be located at `example/passthrough_hp_uds`.
-For easier usage, export that binary location to `$PATH`.
+文件系统守护程序二进制文件将位于 `example/passthrough_hp_uds`。为了便于使用，请将该二进制位置导出到 `$PATH`。
 
-### Usage
+### 用法
 
 :::{note}
-Virtiofs drivers have been supported in Linux since version 5.4 and should be enabled by default (you can check the CONFIG_VIRTIO_FS config option during compilation).
-Remember to include the `virtiofs` device under `soc` in the device tree.
+从 5.4 版本开始，Linux 就支持 Virtiofs 驱动程序，并且应该默认启用（您可以在编译过程中检查 CONFIG_VIRTIO_FS config 选项）。请记住将 `virtiofs` 设备包含在设备树中的 `soc` 下。
 :::
 
-Add a device tree entry describing device bus location and interrupt configuration:
+添加描述设备总线位置和中断配置的设备树条目：
 
 ```dts
 virtio@100d0000 {
@@ -128,7 +119,7 @@ virtio@100d0000 {
 };
 ```
 
-Now you need to add a corresponding extension to the Renode platform definition (the `.repl` file):
+现在，您需要向 Renode 平台定义（`.repl` 文件）添加相应的扩展名：
 
 ```none
 virtio: Storage.VirtIOFSDevice @ sysbus 0x100d0000
@@ -136,47 +127,47 @@ virtio: Storage.VirtIOFSDevice @ sysbus 0x100d0000
 ```
 
 :::{note}
-Addresses and interrupt line number must be consistent across `.repl` and DTS.
+地址和中断行号在 `.repl` 和 DTS 之间必须一致。
 :::
 
-Start the filesystem daemon:
+启动文件系统守护程序：
 
 ```sh
 $ passthrough_hp_uds path_to_share
 ```
 
-By default, this creates a USD socket in `/tmp/libfuse-passthrough-hp.sock`.
+默认情况下，这会在 中创建 `/tmp/libfuse-passthrough-hp.sock` USD 套接字。
 
-Create the virtiofs device in Renode:
+在 Renode 中创建 virtiofs 设备：
 
 ```none
 virtio Create @/tmp/libfuse-passthrough-hp.sock "tag"
 ```
 
-with `tag` being a name of your choosing.
+其中 `tag` 是您选择的名称。
 
-In guest you can now mount the shared directory:
+在 guest 中，您现在可以挂载共享目录：
 
 ```none
 # mount -t virtiofs tag /mnt
 ```
 
-## Sharing files using TFTP
+## 使用 TFTP 共享文件
 
-TFTP (Trivial File Transfer Protocol) is a protocol that allows file transfer between a client and a remote host. Advantages of using TFTP to share files in Renode:
+TFTP（简单文件传输协议）是一种允许在客户端和远程主机之间传输文件的协议。使用 TFTP 在 Renode 中共享文件的优势：
 
-- simplicity,
-- configuration doesn't require any interference in machine structure,
-- everything can be done in the Monitor,
-- does not require host integration, works on all host platforms.
+- 单纯,
+- 配置不需要对机器结构进行任何干预
+- 一切都可以在 Monitor 中完成
+- 不需要主机集成，适用于所有主机平台
 
-Having a built-in TFTP server in Renode allows you not only to transfer files, but also to easily verify the correctness of your network stack in a deterministic simulated environment.
+在 Renode 中拥有内置的 TFTP 服务器，您不仅可以传输文件，还可以在确定性的模拟环境中轻松验证网络堆栈的正确性。
 
-### Starting the TFTP server
+### 启动 TFTP 服务器
 
-To configure TFTP in Renode you need to create a [switch and connect it to your machine](../networking/wired.md).
+要在 Renode 中配置 TFTP，您需要创建一个[交换机并将其连接到您的计算机](../networking/wired.md) 。
 
-Now you can create the TFTP server and connect it to your switch:
+现在，您可以创建 TFTP 服务器并将其连接到交换机：
 
 ```none
 emulation CreateNetworkServer "server" "192.168.100.100"
@@ -185,32 +176,31 @@ server StartTFTP 69
 ```
 
 :::{note}
-Port 69 is a default for the TFTP protocol, but you can provide any other number acceptable for your TFTP client.
+端口 69 是 TFTP 协议的默认值，但您可以提供 TFTP 客户端可接受的任何其他端口。
 :::
 
-After you successfully start the server, you can access it in the Monitor via `server.tftp`
+成功启动服务器后，您可以通过 `server.tftp` 在 Monitor 中访问它
 
-### Using the TFTP server
+### 使用 TFTP 服务器
 
-Single files can be shared via the TFTP server using the `ServeFile` command.
+可以使用 `ServeFile` 命令通过 TFTP 服务器共享单个文件。
 
-`ServeFile` accepts two parameters.
-The first parameter is a path to your host file and the second parameter is the name under which you expose it via TFTP:
+`ServeFile` 接受两个参数。第一个参数是主机文件的路径，第二个参数是通过 TFTP 公开它的名称：
 
 ```none
 server.tftp ServeFile @path/to/file "filename"
 ```
 
 :::{note}
-The second parameter is optional and if it is not specified, the file will be exposed with its original name.
+第二个参数是可选的，如果未指定，则文件将以其原始名称公开。
 :::
 
-Similarly, you can share directories via TFTP using `ServeDirectory`:
+同样，您可以使用 `ServeDirectory` 通过 TFTP 共享目录：
 
 ```none
 server.tftp ServeDirectory @path/to/directory
 ```
 
 :::{note}
-Keep in mind that the built-in TFTP server does not handle uploading files from the guest to the host.
+请记住，内置 TFTP 服务器不处理从客户机到主机的上传文件。
 :::

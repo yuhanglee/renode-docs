@@ -1,85 +1,81 @@
 (basic-control)=
 
-# Basic execution control
+# 基本执行控制
 
-Renode allows you to precisely control the execution of the emulation.
+Renode 允许您精确控制仿真的执行。
 
-## Starting and pausing the execution
+## 开始和暂停执行
 
-In the beginning the emulation is in a *paused* state, which means that no machine is running and *virtual time* is not progressing.
+开始时，仿真处于_暂停_状态，这意味着没有计算机正在运行， *虚拟时间*也没有进行。
 
-To start the emulation, execute:
+要启动仿真，请执行：
 
 ```none
 (machine-0) start
 Starting emulation...
 ```
 
-To pause it, type:
+要暂停它，请键入：
 
 ```none
 (machine-0) pause
 Pausing emulation...
 ```
 
-## Executing instruction-by-instruction
+## 逐条执行指令
 
 ```{note}
-Although using Renode's native stepping is a viable solution, we recommend using [GDB](https://www.sourceware.org/gdb/) to perform step-by-step execution.
-Using GDB with Renode emulated machines is described in detail in the [documentation chapter devoted to this issue](../debugging/gdb.md).
+尽管使用 Renode 的原生步进是一种可行的解决方案，但我们建议使用 [GDB](https://www.sourceware.org/gdb/) 来执行分步执行。在[专门针对此问题的文档章节](../debugging/gdb.md)中详细介绍了将 GDB 与 Renode 模拟计算机一起使用。
 
-More information on how step execution in GDB can be found in the [GDB documentation](https://sourceware.org/gdb/download/onlinedocs/gdb/Continuing-and-Stepping.html).
+有关如何在 GDB 中执行步骤的更多信息，请参阅 [GDB 文档](https://sourceware.org/gdb/download/onlinedocs/gdb/Continuing-and-Stepping.html) 。
 ```
 
-When you need to analyze in detail how the execution of your binary influences the state of the hardware, you can switch to the *stepping* execution mode:
+当您需要详细分析二进制文件的执行如何影响硬件的状态时，您可以切换到_单步执行_模式：
 
 ```none
 (machine-0) sysbus.cpu ExecutionMode SingleStepBlocking
 ```
 
-This will stop the emulation after the execution of each instruction. In order to move to the next one, type:
+这将在执行每条指令后停止仿真。要移动到下一个，请键入：
 
 ```none
 (machine-0) sysbus.cpu Step
 ```
 
-When you want to return to the *normal* execution mode, type:
+当您想要返回到*正常*执行模式时，请键入：
 
 ```none
 (machine-0) sysbus.cpu ExecutionMode Continuous
 ```
 
-More advanced control can be obtained by connecting an external GDB.
+通过连接外部 GDB 可以获得更高级的控制。
 
-## Blocking and non-blocking stepping
+## 阻塞和非阻塞步进
 
-When you use `SingleStepBlocking` mode, the emulation won't progress between steps.
-This can cause problems with blocking the emulation when executing multiple cores instruction-by-instruction, in which case `SingleStepNonBlocking` mode is the preferred option.
-The drawback of the non-blocking mode is that the virtual time will progress between steps, which might introduce desynchronization and timeout-related issues.
+当您使用 `SingleStepBlocking` 模式时，模拟不会在步骤之间进行。这可能会导致在逐条指令执行多个内核时阻止仿真的问题，在这种情况下，`SingleStepNonBlocking` 模式是首选选项。非阻塞模式的缺点是虚拟时间将在步骤之间进行，这可能会引入不同步和超时相关问题。
 
-The `Step` command will preserve the current mode when in instruction-by-instruction flow and use the default value (`SingleStepBlocking`) otherwise.
-This behavior can be overridden by selecting the non-blocking mode explicitly:
+`Step` 命令将在逐条指令流中保持当前模式，否则使用默认值 （`SingleStepBlocking`）。可以通过显式选择非阻塞模式来覆盖此行为：
 
 ```none
 (machine-0) sysbus.cpu Step false
 ```
 
-## Inspecting the current location
+## 检查当前位置
 
-Renode allows you to easily examine the current state of your application:
+Renode 允许您轻松检查应用程序的当前状态：
 
 ```none
 (machine-0) sysbus.cpu PC
 0xC01890A8
 ```
 
-As a result, you will get the hexadecimal address of the instruction currently being executed.
+因此，您将获得当前正在执行的指令的十六进制地址。
 
-If you want to know the name of the function that is currently being executed (assuming your binary has been compiled with the symbols inside) type:
+如果您想知道当前正在执行的函数的名称（假设您的二进制文件已使用内部的符号进行编译），请键入：
 
 ```none
 (machine-0) sysbus FindSymbolAt `sysbus.cpu PC` # equivalent of 0xC01890A8
 uart_console_write
 ```
 
-This will print the name of the symbol.
+这将打印元件的名称。

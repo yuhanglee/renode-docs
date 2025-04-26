@@ -1,38 +1,36 @@
-# Renode, Fomu and EtherBone bridge example
+# Renode、Fomu 和 EtherBone 网桥示例
 
-This tutorial shows how to run a hybrid simulation where part of the platform is run in Renode and part on FPGA hardware.
+本教程介绍如何运行混合仿真，其中平台的一部分在 Renode 中运行，另一部分在 FPGA 硬件上运行。
 
-## System architecture
+## 系统架构
 
-The system architecture consists of three main parts:
+系统架构由三个主要部分组成：
 
-* [FOMU](https://github.com/im-tomu/fomu-hardware) - Lattice iCE40UP5K-based board with RGB LED, connected to the host machine over USB;
-* EtherBone bridge, translating wishbone packets between TCP and USB;
-* Renode simulating the [LiteX](https://github.com/enjoy-digital/litex) platform, running Zephyr OS that controls the RGB LED.
+* [FOMU](https://github.com/im-tomu/fomu-hardware) - 基于 Lattice iCE40UP5K 的电路板，带 RGB LED，通过 USB 连接到主机;
+* EtherBone 桥接器，在 TCP 和 USB 之间转换 wishbone 数据包;
+* Renode 模拟 [LiteX](https://github.com/enjoy-digital/litex) 平台，运行控制 RGB LED 的 Zephyr OS。
 
-## Prerequisites
+## 先决条件
 
-### Simulation
+### 模拟
 
-For the simulation part, you need to have the latest version of Renode available in your system.
+对于仿真部分，您的系统中需要有最新版本的 Renode。
 
-You can install [a prebuilt package for your OS](https://github.com/renode/renode/releases) or build a copy from sources as specified in the {doc}`../advanced/building_from_sources`.
+您可以为作系统安装[预构建的软件包](https://github.com/renode/renode/releases) ，也可以从从[源构建 Renode](https://renode.readthedocs.io/en/latest/advanced/building_from_sources.html) 中指定的源构建副本。
 
-### Hardware
+### 硬件
 
-For the hardware part, you need to have the [FOMU](https://github.com/im-tomu/fomu-hardware) board.
+对于硬件部分，您需要有 [FOMU](https://github.com/im-tomu/fomu-hardware) 板。
 
-[FOMU](https://github.com/im-tomu/fomu-hardware) needs to be flashed with the [Foboot](https://github.com/im-tomu/foboot) bitstream containing the [ValentyUSB](https://github.com/mithro/valentyusb) IP core with a USB-Wishbone bridge.
-The manufactured FOMU comes preloaded with this bitstream and can be used right away.
+[FOMU 需要用 Foboot](https://github.com/im-tomu/fomu-hardware) bitstream 进行闪存，该 [Foboot](https://github.com/im-tomu/foboot) bitstream 包含带有 USB-Wishbone 桥接的 [ValentyUSB](https://github.com/mithro/valentyusb) IP core。制造的 FOMU 预装了此 bitstream，可以立即使用。
 
-If you have assembled your own copy of the board or changed the original bitsteam, please remember to load Foboot again.
-For convenience, the prebuilt version of the bitstream is [hosted by Antmicro](https://antmicro.com/projects/renode/foboot-bitstream.bin-s_104250-fc5f419372eb9a3a0baa5556483163bcfccb7d33).
+如果您已经组装了自己的板子副本或更改了原始的 bitsteam，请记得再次加载 Foboot。为方便起见，bitstream 的预构建版本[由 Antmicro 托管](https://antmicro.com/projects/renode/foboot-bitstream.bin-s_104250-fc5f419372eb9a3a0baa5556483163bcfccb7d33) 。
 
-### EtherBone bridge
+### 网桥
 
-In order to connect Renode to [FOMU](https://github.com/im-tomu/fomu-hardware) you need to download the EtherBone-to-USB bridge shipped with [LiteX](https://github.com/enjoy-digital/litex).
+为了将 Renode 连接到 [FOMU](https://github.com/im-tomu/fomu-hardware)，您需要下载 [LiteX](https://github.com/enjoy-digital/litex) 附带的 EtherBone 到 USB 桥接器。
 
-Clone the repository and initialize the environment:
+克隆存储库并初始化环境：
 
 ```bash
 git clone https://github.com/enjoy-digital/litex
@@ -41,15 +39,15 @@ cd litex
 export PYTHONPATH=`pwd`:`pwd`/litex:`pwd`/migen
 ```
 
-`litex_server.py` additionally requires the `pyusb` package to be installed in the system:
+`litex_server.py` 还需要在系统中安装 `pyusb` 包：
 
 ```bash
 pip3 install pyusb
 ```
 
-## Verifying the device
+## 验证设备
 
-Plug [FOMU](https://github.com/im-tomu/fomu-hardware) into a USB port and verify if it has been recognized by checking the `dmesg` logs:
+将 [FOMU](https://github.com/im-tomu/fomu-hardware) 插入 USB 端口，并通过检查 `dmesg` 日志来验证它是否已被识别：
 
 ```text
 [65038.250957] usb 2-1: new full-speed USB device number 16 using xhci_hcd
@@ -59,27 +57,27 @@ Plug [FOMU](https://github.com/im-tomu/fomu-hardware) into a USB port and verify
 [65038.409288] usb 2-1: Manufacturer: Foosn
 ```
 
-Note: The version of the product might differ, but it should work correctly with v.1.7.2 upwards.
+注意：产品的版本可能有所不同，但应该可以在 v.1.7.2 及更高版本中正常工作。
 
-If the device is not detected, see the section below.
+如果未检测到设备，请参阅以下部分。
 
-## Loading the bitstream (optional)
+## 加载 bitstream （可选）
 
-If your device is detected as a DFU Bootloader in version 1.7.2 or higher, you can skip this step.
+如果您的设备在 1.7.2 或更高版本中被检测到 DFU 引导加载程序，您可以跳过此步骤。
 
-In order to upload a bitstream to a device that is not recognized as a DFU Bootloader you will need an external programming board.
+为了将 bitstream 上传到未被识别为 DFU Bootloader 的器件，您需要一个外部编程板。
 
 :::{note}
 
-For convenience, you can use [the Fomu Programmer](https://github.com/antmicro/fomu-programmer) - the Open Hardware programming board for [FOMU](https://github.com/im-tomu/fomu-hardware) by Antmicro.
+为方便起见，您可以使用 [Fomu Programmer](https://github.com/antmicro/fomu-programmer) - Antmicro 的 [FOMU](https://github.com/im-tomu/fomu-hardware) 开放硬件编程板。
 
 :::
 
-Download and make [iceprog](https://github.com/cliffordwolf/icestorm/tree/master/iceprog) - open source programming software for Lattice iCE40:
+下载并制作 [iceprog](https://github.com/cliffordwolf/icestorm/tree/master/iceprog) - 用于 Lattice iCE40 的开源编程软件：
 
 :::{note}
 
-Building `iceprog` requires the `ftdi` library headers to be available in the system.
+构建 `iceprog` 需要在系统中提供 `ftdi` 库头文件。
 
 :::
 
@@ -89,7 +87,7 @@ cd icestorm/iceprog
 make
 ```
 
-Download the prebuilt bitstream:
+下载预构建的 bitstream：
 
 ```bash
 wget https://antmicro.com/projects/renode/foboot-bitstream.bin-s_104250-fc5f419372eb9a3a0baa5556483163bcfccb7d33 -O foboot-bitstream.bin
@@ -97,32 +95,32 @@ wget https://antmicro.com/projects/renode/foboot-bitstream.bin-s_104250-fc5f4193
 
 :::{note}
 
-You can also build the bitstream yourself by following the instructions on the [Foboot](https://github.com/im-tomu/foboot) page.
+您也可以按照 [Foboot](https://github.com/im-tomu/foboot) 页面上的说明自己构建 bitstream。
 
 :::
 
-Attach the board to the programmer and load the bitstream to the FPGA:
+将板子连接到编程器并将 bitstream 加载到 FPGA：
 
 ```bash
 sudo iceprog foboot-bitstream.bin
 ```
 
-## Running the demo
+## 运行演示
 
-Start the EtherBone bridge from the [LiteX](https://github.com/enjoy-digital/litex) repository:
+从 [LiteX](https://github.com/enjoy-digital/litex) 存储库启动 EtherBone 网桥
 
 ```bash
 cd litex
 sudo python3 litex/tools/litex_server.py --usb --usb-vid 0x1209 --usb-pid 0x5bf0
 ```
 
-Run the Zephyr OS image in simulation using the script shipped with Renode:
+使用 Renode 附带的脚本在模拟中运行 Zephyr OS 映像：
 
 ```text
 (monitor) start @scripts/complex/fomu/renode_etherbone_fomu.resc
 ```
 
-Now you can control the HW LED from Zephyr's shell using special commands:
+现在，您可以使用特殊命令从 Zephyr 的 shell 控制硬件 LED：
 
 ```bash
 uart:~$ led_toggle
@@ -130,8 +128,8 @@ uart:~$ led_breathe
 ```
 
 `led_toggle`
-    toggles the green led
+    切换绿色 LED
 
 `led_breathe`
-    makes the blue led blink with a fade-in/fade-out effect
+    使蓝色 LED 闪烁并产生淡入/淡出效果
 

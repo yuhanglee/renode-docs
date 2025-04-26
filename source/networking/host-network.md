@@ -1,117 +1,110 @@
-# Connecting to the host network
+# 连接到主机网络
 
-Renode allows you to connect a host network interface to [a simulated wired network](./wired.md).
+Renode 允许您将主机网络接口连接到[模拟有线网络](../wired.md) 。
 
-To do that you need to be able to create a `TAP` interface.
-Renode will try to create one, provided you have sufficient privileges.
+为此，您需要能够创建 `TAP` 接口。Renode 将尝试创建一个，前提是您有足够的权限。
 
-## Regarding time flow
+## 关于时间流
 
-All devices simulated in Renode operate in [virtual time](../advanced/time_framework.md), which is typically slower than the real time flow.
-Moreover, network packets are delivered in periodical synchronisation points, delaying the communication even further.
+在 Renode 中模拟的所有设备都在[虚拟时间](../advanced/time_framework.md)中运行，这通常比实时流慢。此外，网络数据包在周期性同步点传递，从而进一步延迟通信。
 
-This means that time constraints (e.g. timeouts) placed by applications trying to connect to the simulated network from the host may need to be altered to take these delays into account.
+这意味着可能需要更改尝试从主机连接到模拟网络的应用程序设置的时间约束（例如超时），以考虑这些延迟。
 
-## Opening a TAP interface
+## 打开 TAP 接口
 
-To create and open a TAP interface which will be listed on your host system as `tap0` and inside Renode as `host.tap`, run:
+要创建并打开一个 TAP 接口，该接口将在主机系统上列为 `tap0`，在 Renode 中列为 `host.tap`，请运行：
 
 ```none
 (monitor) emulation CreateTap "tap0" "tap"
 ```
 
-If you want the interface to be retained after Renode closes, add a `true` parameter:
+如果您希望在 Renode 关闭后保留接口，请添加 `true` 参数：
 
 ```none
 (monitor) emulation CreateTap "tap0" "tap" true
 ```
 
-Depending on your system configuration, you may be asked for a password to open the interface.
+根据您的系统配置，系统可能会要求您输入密码以打开界面。
 
 :::{note}
-The newly created interface needs to be enabled and configured on your host machine.
+需要在主机上启用和配置新创建的接口。
 
-By default it has no IP address assigned and is in `down` state.
+默认情况下，它没有分配 IP 地址，并且处于`关闭`状态。
 
-Please refer to your system documentation for further instructions.
+有关进一步说明，请参阅您的系统文档。
 :::
 
-## Using TAP interface on Windows
+## 在 Windows 上使用 TAP 接口
 
-In order to create a TAP device on Windows, you need to install a third-party driver that is a part of the [OpenVPN project](https://openvpn.net/community-downloads/).
-If OpenVPN is installed on your computer, Renode should detect it when trying to create a TAP interface.
-The feature has been specifically tested with `OpenVPN 2.5.6`.
+为了在 Windows 上创建 TAP 设备，您需要安装作为 [OpenVPN 项目](https://openvpn.net/community-downloads/)一部分的第三方驱动程序。如果您的计算机上安装了 OpenVPN，Renode 应在尝试创建 TAP 接口时检测到它。该功能已在 `OpenVPN 2.5.6` 中进行了专门测试。
 
 :::{note}
-You need Administrator Privileges to create a TAP on Windows.
+您需要管理员权限才能在 Windows 上创建 TAP。
 :::
 
-To create a TAP interface on your Windows PC, first, you need to create a new TAP interface in Renode using the usual command:
+要在 Windows PC 上创建 TAP 接口，首先，您需要使用常用命令在 Renode 中创建新的 TAP 接口：
 
 ```none
 (monitor) emulation CreateTap "tap0" "tap"
 ```
 
-Then you need to assign an IP address to your TAP using the command prompt:
+然后，您需要使用命令提示符为 TAP 分配一个 IP 地址：
 
 ```none
 netsh interface ipv4 set address name=tap0 static X.X.X.X
 ```
 
 :::{note}
-You can also create a TAP interface directly using the `tapctl.exe` driver from OpenVPN:
+您还可以使用 OpenVPN 的 `tapctl.exe` 驱动程序直接创建 TAP 接口：
 
 ```none
 tapctl.exe create --name tap0
 ```
 
-Then assign it an IP address:
+然后为其分配一个 IP 地址：
 
 ```none
 netsh interface ipv4 set address name=tap0 static X.X.X.X
 ```
 
-Finally, connect it to Renode using:
+最后，使用以下方法将其连接到 Renode：
 
 ```none
 (monitor) emulation CreateTap "tap0" "tap"
 ```
 :::
 
-## Connecting TAP interface switch
+## 连接 TAP 接口开关
 
-Assuming you have already [configured the simulated network](./wired.md), you can connect a TAP interface to a `switch` device by running:
+假设您已经[配置了模拟网络](../wired.md) ，则可以通过运行以下命令将 TAP 接口连接到`交换机`设备：
 
 ```
 (monitor) emulation CreateSwitch "switch"
 (monitor) connector Connect host.tap switch
 ```
 
-## Starting the interface
+## 启动界面
 
-The TAP interface is created as "paused".
-To enable communication with the host system you must start it manually, either by running:
+TAP 接口创建为 “paused”。要启用与主机系统的通信，您必须通过运行以下命令手动启动它：
 
 ```none
 (monitor) start
 ```
 
-or, if your emulation is already started, with:
+或者，如果您的仿真已启动，请使用：
 
 ```none
 (monitor) host.tap Start
 ```
 
-## Transferring files from host
+## 从主机传输文件
 
-If you successfully created a TAP interface, files can be transferred from the host computer to emulation using `wget`.
-To do it you will need to use an IP address associated with the TAP interface on the host machine, for example:
+如果成功创建了 TAP 接口，则可以使用 `wget` 将文件从主机传输到仿真。为此，您需要使用与主机上的 TAP 接口关联的 IP 地址，例如：
 
 ```none
 wget http://192.168.100.1/home/user/file.txt
 ```
 
 :::{note}
-There are other methods of file transfer: [built-in TFTP server and Virtio](../host-integration/sharing-files.md).
-Those methods are recommended if you want to avoid the limitations of the host-guest networking via TAP.
+还有其他文件传输方法： [内置 TFTP 服务器和 Virtio](../host-integration/sharing-files.md)。如果您想避免通过 TAP 进行主来宾联网的限制，建议使用这些方法。
 :::

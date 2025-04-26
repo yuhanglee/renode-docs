@@ -1,100 +1,95 @@
-# Setting up a wireless network
+# 设置无线网络
 
-Connecting nodes in a wireless network in Renode is as easy as creating [wired networks](./wired.md).
+在 Renode 中连接无线网络中的节点就像创建[有线网络](./wired.md)一样简单。
 
-Just like with a `Switch` object, you can create an abstraction of `Wireless Medium`, to connect radio interfaces to.
+就像使用 `Switch` 对象一样，您可以创建 `Wireless Medium` 的抽象，以将无线电接口连接到该抽象。
 
-## Creating a wireless medium
+## 创建无线介质
 
-Renode allows you to create multiple virtual wireless media, separated from each other.
-The exchanged packets are not transfered between these media, so you can treat this mechanism as means for physical separation which may help you with debugging of your wireless setup.
+Renode 允许您创建多个彼此独立的虚拟无线媒体。交换的数据包不会在这些媒体之间传输，因此您可以将此机制视为物理分离的方法，这可能有助于您调试无线设置。
 
-The network traffic is not affected by the number of nodes connected to one wireless medium.
+网络流量不受连接到一个无线介质的节点数的影响。
 
-Renode supports two types of wireless media: `IEEE802_15_4Medium` and `BLEMedium`.
-Each one creates an abstration of different type of wireless connection. They\'re using IEEE802_15_4 standard and Bluetooth Low Energy accordingly.
+Renode 支持两种类型的无线媒体：`IEEE802_15_4Medium` 和 `BLEMedium`。每个 API 都会创建不同类型无线连接的 abstration。他们相应地使用 IEEE802_15_4 标准和低功耗蓝牙。
 
-To create an IEEE802_15_4 medium called `wireless`, run:
+要创建名为 `wireless` 的 IEEE802_15_4 介质，请运行：
 
 ```none
 (monitor) emulation CreateIEEE802_15_4Medium "wireless"
 ```
 
-Analogously for a BLE medium:
+要创建名为 `wireless` 的 IEEE802_15_4 介质，请运行：
 
 ```none
 (monitor) emulation CreateBLEMedium "wireless"
 ```
 
-## Connecting interfaces
+## 连接接口
 
-To connect an interface to a wireless medium you have to set a proper [machine context](../basic/machines.md#switching-between-machines).
+要将接口连接到无线介质，您必须设置适当的[计算机上下文](../basic/machines.md#switching-between-machines)
 
-Then, use the `connector` mechanism to attach the interface:
+然后，使用`连接器`机制连接接口：
 
 ```none
 (machine-0) connector Connect sysbus.radio wireless
 ```
 
-Although it is not a common setup, each interface can be connected to many media at the same time.
+虽然这不是常见的设置，但每个接口可以同时连接到许多媒体。
 
-## Disconnecting interfaces
+## 断开接口
 
-You can disconnect network interfaces from a wireless medium by running:
+您可以通过运行以下命令来断开网络接口与无线介质的连接：
 
 ```none
 (machine-0) connector Disconnect sysbus.radio wireless
 ```
 
-To disconnect from all connected wireless media, use:
+要断开与所有连接的无线媒体的连接，请使用：
 
 ```none
 (machine-0) connector DisconnectFromAll sysbus.radio
 ```
 
-## Positioning the nodes
+## 定位节点
 
-A wireless medium uses 3D coordinates, without any specified unit of distance, to position the connected nodes.
+无线介质使用 3D 坐标（不带任何指定距离单位）来定位连接的节点。
 
-To set a position of a node to coordinates {X = 3, Y = 5, Z = -8.5}, run:
+要将节点的位置设置为坐标 {X = 3， Y = 5， Z = -8.5}，请运行：
 
 ```none
 (machine-0) wireless SetPosition sysbus.radio 3 5 -8.5
 ```
 
-Again, the unit of these coordinates is not determined, so it's the user's responsibility of keeping them consistent in the emulation.
+同样，这些坐标的单位尚未确定，因此用户有责任在仿真中保持它们一致。
 
-## Controlling the traffic
+## 控制流量
 
-By default, the wireless medium delivers all packets to all connected interfaces.
-This can be, however, configured, depending on your needs.
+默认情况下，无线介质将所有数据包传送到所有连接的接口。但是，这可以根据您的需要进行配置。
 
-Renode exposes an abstraction of `Medium Functions`.
-Each medium function can accept a set of parameters to decide whether a packet exchanged between two nodes (knowing the positions of the sender and the receiver) will be successfuly delivered or not.
+Renode 公开了 `Medium Functions` 的抽象。每个 medium 函数可以接受一组参数来决定两个节点之间交换的数据包（知道发送方和接收方的位置）是否能够成功传递。
 
-Renode provides three medium functions by default:
+Renode 默认提供三种 medium 功能：
 
 - `SimpleWirelessFunction`
 
-  The default setting, delivering all packets to all connected nodes.
+  默认设置，将所有数据包传送到所有连接的节点。
 
 - `RangeWirelessFunction`
 
-  This function accepts a parameter indicating the maximal cartesian range between nodes.
+  此函数接受一个参数，该参数指示节点之间的最大笛卡尔范围。
 
-  If the nodes are within this range, all packets are delivered successfuly.
-  If they are not within range, the communication is not possible.
+  如果节点在此范围内，则所有数据包都投递成功。如果它们不在范围内，则无法进行通信。
 
 - `RangeLossWirelessFunction`
 
-  This function introduces a probabilistic loss of packets increasing gradually with the distance between nodes.
+  此功能引入了数据包的概率丢失，该数据包的丢失会随着节点之间的距离而逐渐增加。
 
-  Given three parameters, `lossRange` (in distance units), `txRatio` and `rxRatio` (both ranging from 0 to 1.0, inclusively), each packet is subject to two tests.
+  给定三个参数 `lossRange`（以距离为单位）、`txRatio` 和 `rxRatio`（范围从 0 到 1.0，包括 0 和 1.0），每个数据包都要接受两次测试。
 
-  The first test determines if the transmission is successful (with probability `p >> txRatio`).
+  第一个测试确定传输是否成功（概率为 `p >> txRatio`）。
 
-  The second test takes the distance between the sender and the receiver and calculates the success ratio according the the formula: `1 - ((distance/lossRange) * (1 - rxRatio))`.
+  第二个测试取发送方和接收方之间的距离，并根据以下公式计算成功率： `1 - ((distance/lossRange) * (1 - rxRatio))` 。
 
 :::{note}
-Keep in mind that even though the `RangeLossWirelessFunction` relies on probability, you can still configure the RNG seed with `emulation SetSeed` to preserve determinism of execution.
+请记住，即使 `RangeLossWirelessFunction` 依赖于概率，您仍然可以使用`仿真 SetSeed` 配置 RNG 种子，以保持执行的确定性。
 :::

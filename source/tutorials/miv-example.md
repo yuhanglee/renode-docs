@@ -1,162 +1,134 @@
-# Microsemi Mi-V example
+# Microsemi Mi-V 示例
 
-In this tutorial you will learn how to setup a fully functional emulation of a single Mi-V board by Microsemi, with a RISC-V CPU.
-It covers topics ranging from installing Renode, through basic commands, to the process of [integrating with Microsemi's SoftConsole IDE](#softconsole-integration).
+在本教程中，您将学习如何使用 RISC-V CPU 设置 Microsemi 的单个 Mi-V 板的全功能仿真。它涵盖的主题范围从安装 Renode，到基本命令，以及与 [Microsemi 的 SoftConsole IDE 集成](#softconsole-integration)的过程。
 
-While this tutorial focuses on a single Mi-V platform, Renode supports multiple devices running in the same simulation - and it should be fairly simple to extend this scenario to multiple interconnected nodes.
+虽然本教程侧重于单个 Mi-V 平台，但 Renode 支持在同一仿真中运行多个设备 - 将这个场景扩展到多个互连的节点应该相当简单。
 
-## Installation
+## 安装
 
-The Renode framework is hosted [on GitHub](https://github.com/renode/renode).
-You can download and install it following the process described in the [README](https://github.com/renode/renode/blob/master/README.md) file, but the easiest way to start is by downloading a binary release from <https://github.com/renode/renode/releases>.
-The precompiled packages are provided as deb and rpm packages for Linux, dmg package for macOS and a zip archive for Windows.
+Renode 框架托管[在 GitHub 上](https://github.com/renode/renode) 。您可以按照 [README](https://github.com/renode/renode/blob/master/README.md) 文件中描述的过程下载并安装它，但最简单的开始方法是从 [https://github.com/renode/renode/releases](https://github.com/renode/renode/releases) 下载二进制版本。预编译包以 deb 和 rpm 包（适用于 Linux）、dmg 包（适用于 macOS）和 zip 存档（适用于 Windows）的形式提供。
 
-## Starting Renode
+## 启动 Renode
 
-One of the many ways to interact with Renode is via its command line interface.
+与 Renode 交互的众多方式之一是通过其命令行界面。
 
-After installing Renode, you should be able to run the `renode` command from your command line.
-Alternatively, look for the Renode.exe binary.
-Once Renode is started, you will see two windows - one for Renode's smart logger and one for the CLI called "the Monitor".
+安装 Renode 后，您应该能够从命令行运行 `renode` 命令。或者，查找 Renode.exe 二进制文件。启动 Renode 后，您将看到两个窗口 - 一个用于 Renode 的智能记录器，另一个用于称为“监视器”的 CLI。
 
-From this window you will be able to create and control the whole emulation environment.
+在此窗口中，您将能够创建和控制整个仿真环境。
 
-## Scripts
+## 脚本
 
-While you can type all commands interactively, it's a good idea to group them into reusable Renode scripts, which typically have the ".resc" extension.
-Their purpose is to load binaries, set starting conditions, prepare the environment, connect machines to the network etc.
+虽然您可以交互式地键入所有命令，但最好将它们分组到可重用的 Renode 脚本中，这些脚本通常具有“.resc”扩展名。它们的目的是加载二进制文件、设置启动条件、准备环境、将机器连接到网络等。
 
-For the purpose of this article we will use the script available in the Renode package named: {script}`scripts/single-node/miv.resc <single-node/miv.resc>`.
-For details about the particular script you will be running, please inspect the file in the Renode installation directory (e.g. for Linux it is "/opt/renode/scripts").
+在本文中，我们将使用 Renode 包中提供的脚本，名为 {script}`scripts/single-node/miv.resc <single-node/miv.resc>` 有关您将运行的特定脚本的详细信息，请检查 Renode 安装目录中的文件（例如，对于 Linux，它是“/opt/renode/scripts”）。
 
-## Loading our setup
+## 加载我们的设置
 
-The provided script creates a single machine and loads a sample LiteOS-based application.
+提供的脚本将创建一台计算机并加载一个基于 LiteOS 的示例应用程序。
 
-To run a script, use the `include` command (or `i`, for short), with a path to the script to load, prepended with the `@` sign, like this:
+要运行脚本，请使用 `include` 命令（或简称 `i`），并指定要加载的脚本的路径，前面加上 `@` 符号，如下所示：
 
 ```none
 include @scripts/single-node/miv.resc
 ```
 
-After the script is loaded, you will see a new terminal - a UART window opened by the `showAnalyzer` command.
+加载脚本后，您将看到一个新的终端 - 一个由 `showAnalyzer` 命令打开的 UART 窗口。
 
-In the provided scripts, we're using precompiled binaries hosted online, but you can provide your own binaries by setting the `$bin` variable before loading the script:
+在提供的脚本中，我们使用的是在线托管的预编译二进制文件，但您可以通过在加载脚本之前设置 `$bin` 变量来提供自己的二进制文件：
 
 ```none
 $bin=@path/to/application.elf
 ```
 
-The emulation is now loaded, but not started.
-You can control it using `start` and `pause` - and other commands, as described in the next section.
+仿真现在已加载，但尚未启动。您可以使用 `start` 和 `pause` - 以及其他命令来控制它，如下一节所述。
 
-## Simple commands
+## 简单的命令
 
-### Start and pause
+### 开始和暂停
 
-To control whether the simulation is running, use `start` and `pause`.
+要控制模拟是否正在运行，请使用 `start` 和 `pause`。
 
-### Machines
+### 机器
 
-In the provided script, we use the `mach create` command to create the machine.
-This switches the context in the Monitor.
-All subsequent commands are executed with regard to the current machine.
+在提供的脚本中，我们使用 `mach create` 命令来创建机器。这将切换 Monitor 中的上下文。所有后续命令都针对当前计算机执行。
 
-To change the machine use the `mach set` command.
-Use a number or the name of the machine, e.g. `mach set 1` or `mach set "MI-V"`.
+要更改机器，请使用 `mach set` 命令。使用机器的数字或名称，例如 `mach set 1` 或 `mach set “MI-V”。`
 
-All machines can be listed with the `mach` command.
-To clear the current selection use `mach clear`.
+可以使用 `mach` 命令列出所有计算机。要清除当前选择，请使用 `mach clear`。
 
-### Accessing peripherals
+### 访问外围设备
 
-All peripherals are accessible in the Monitor, with most of their methods and properties exposed to the user.
-To list all available peripherals use the `peripherals` command.
+所有外围设备都可以在 Monitor 中访问，并且它们的大部分方法和属性都向用户公开。要列出所有可用的外围设备，请使用 `peripherals` 命令。
 
-### Peripheral methods and properties
+### 外围方法和属性
 
-To access a peripheral you have to provide its fully qualified name.
-All peripherals are registered in `sysbus`, so use `sysbus.uart` to access the UART or `sysbus.gpioOutputs.led0` to access one of the LEDs.
+要访问外围设备，您必须提供其完全限定名称。所有外设都注册在 `sysbus` 中，因此请使用 `sysbus.uart` 访问 UART，或使用 `sysbus.gpioOutputs.led0` 访问其中一个 LED。
 
-The `using sysbus` command is used in most of the provided demos, allowing you to drop the `sysbus.` prefix.
+大多数提供的演示中都使用了 `using sysbus` 命令，允许您删除 `sysbus.` 前缀。
 
-Typing a peripheral's name gives you a list of available methods, fields and properties.
-The list is automatically generated, so most of the accessible members are not designed for the end-user.
+键入外围设备的名称将为您提供可用方法、字段和属性的列表。该列表是自动生成的，因此大多数可访问成员都不是为最终用户设计的。
 
-The list shows examples of correct Monitor syntax for each member type.
+该列表显示了每种成员类型的正确 Monitor 语法的示例。
 
-### Other commands
+### 其他命令
 
-To find information about built-in Monitor commands, type `help` and refer to the documentation.
-Running `help builtin_command_name` prints out the help for the given command.
+要查找有关内置 Monitor 命令的信息，请键入 `help` 并参阅文档。运行 `help builtin_command_name` 将打印出给定命令的帮助。
 
-## Debugging and inspection
+## 调试和检查
 
-Renode offers you many ways to verify the behavior of your applications.
-Thanks to having full control over the environment, you can add logging, hooks on events, interactive code debugging and more in a way that is 100% transparent to the emulated application.
+Renode 为您提供了多种验证应用程序行为的方法。由于对环境具有完全控制权，您可以以对模拟应用程序 100% 透明的方式添加日志记录、事件钩子、交互式代码调试等。
 
-Here we will present just a few of the available debugging options.
+在这里，我们将仅介绍一些可用的调试选项。
 
-### Function name logging
+### 函数名称日志记录
 
-When the application is stuck or misbehaves it is always a good idea to inspect the trace of function calls.
-To enable logging of function names in a selected machine run `cpu LogFunctionNames true` (and `false`, respectively, to disable it).
+当应用程序卡住或行为异常时，检查函数调用的跟踪始终是一个好主意。要在选定的机器中启用函数名称的日志记录，请运行 `cpu LogFunctionNames true` （和 `false` 分别禁用它）。
 
-Since the amount of logged data may be too overwhelming to be useful, you can filter the logged functions to the ones that begin with a specified prefix.
-For example `cpu LogFunctionNames true "UART_ LOS_"` will only log functions that begin with either "UART_" or "LOS_" prefix.
+由于记录的数据量可能太大而无法使用，因此您可以将记录的函数筛选为以指定前缀开头的函数。例如 `cpu LogFunctionNames true "UART_ LOS_"` ，将仅记录以 “UART_” 或 “LOS_” 前缀开头的函数。
 
-### Logging of peripheral accesses
+### 外设访问日志记录
 
-If your driver does not behave correctly, it may be a good idea to investigate the communication with the device it controls.
-To enable logging of each interaction between the CPU and the UART peripheral, run `sysbus LogPeripheralAccess uart`.
+如果您的驱动程序行为不正确，最好调查与它所控制的设备的通信。要启用 CPU 和 UART 外设之间每次交互的日志记录，请运行 `sysbus LogPeripheralAccess uart` 。
 
-This feature is available only for peripherals registered directly on the system bus.
+此功能仅适用于直接在 system bus 上注册的外围设备。
 
 ### GDB
 
-A popular tool for debugging, GDB, can be used to analyze applications running in Renode.
-It uses the same remote protocol as OpenOCD, so it can be easily integrated with most GDB-based IDEs, such as SoftConsole or Eclipse.
-To start a GDB stub in Renode, run `machine StartGdbServer 3333` (where 3333 is a sample port number) and connect from GDB by calling `(gdb) target remote :3333`.
-To start the emulation you have to run both `start` in Renode and `continue` in GDB.
+一种流行的调试工具 GDB 可用于分析在 Renode 中运行的应用程序。它使用与 OpenOCD 相同的远程协议，因此可以轻松地与大多数基于 GDB 的 IDE 集成，例如 SoftConsole 或 Eclipse。要在 Renode 中启动 GDB 存根，请运行`计算机 StartGdbServer 3333`（其中 3333 是示例端口号）并通过调用 `（gdb） target remote ：3333` 从 GDB 进行连接。要启动仿真，您必须同时运行 `start` in Renode 和 `continue` in GDB。
 
-You can use most of GDB's regular features: breakpoints, watchpoints, stepping, reading/writing to variables, etc.
-You can also use the `monitor` command in GDB to send commands directly to the Renode CLI (to avoid switching between two console windows).
+您可以使用 GDB 的大部分常规功能：断点、观察点、步进、读/写变量等。您还可以使用 GDB 中的 `monitor` 命令将命令直接发送到 Renode CLI（以避免在两个控制台窗口之间切换）。
 
-## SoftConsole integration
+## SoftConsole  集成
 
-One of the Renode's main goals is to easily integrate with tools that are used for a developer\'s everyday work.
-A great example of such a tool is [SoftConsole, an Eclipse-based IDE from Microsemi](https://www.microsemi.com/product-directory/design-tools/4879-softconsole).
+Renode 的主要目标之一是轻松与用于开发人员日常工作的工具集成。此类工具的一个很好的示例是 [SoftConsole，它是 Microsemi 的一个基于 Eclipse 的 IDE](https://www.microsemi.com/product-directory/design-tools/4879-softconsole)。
 
-SoftConsole offers debugging capabilities that can be normally used when attached to hardware.
-By altering the project settings you can connect it to Renode.
+SoftConsole 提供了调试功能，这些功能在连接到硬件时可以正常使用。通过更改项目设置，您可以将其连接到 Renode。
 
-Start by running the GDB server in renode:
+首先在 renode 中运行 GDB 服务器：
 
 ```none
 (monitor) include @scripts/single-node/miv.resc
 (MI-V) machine StartGdbServer 3333 true
 ```
 
-Please note the `true` parameter - it forces Renode to autostart as soon as the GDB client connects.
+请注意 `true` 参数 - 它强制 Renode 在 GDB 客户端连接后立即自动启动。
 
-Now you need to configure the debug configuration in SoftConsole.
+现在，您需要在 SoftConsole 中配置调试配置。
 
-In the Project Explorer, right click on your project's name, select `Debug As` and `Debug Configurations...`.
+在 Project Explorer 中，右键单击您的项目名称，选择 `Debug As` 和 `Debug Configurations...`。
 
 ![image](miv/softconsole-debug.png)
 
-This opens a window, where you need to open the `Debugger` tab.
-There, uncheck the checkbox `Start OpenOCD locally`, as Renode will serve the same purpose as OpenOCD usually does.
+这将打开一个窗口，您需要在其中打开 `Debugger` 选项卡。在那里，取消选中 `Start OpenOCD locally` 复选框，因为 Renode 的作用与 OpenOCD 通常相同。
 
 ![image](miv/softconsole-openocd.png)
 
-You must verify that the remote port number in the `Remote Target` section is the same as the one provided in the `StartGdbServer` command.
+您必须验证 `Remote Target` 部分中的远程端口号是否与 `StartGdbServer` 命令中提供的端口号相同。
 
-With these changes in place, you can now click `Debug`.
-SoftConsole will connect to Renode and the emulation will start automatically.
+完成这些更改后，您现在可以单击 `Debug`。SoftConsole 将连接到 Renode，仿真将自动启动。
 
-By default, you will observe a breakpoint at the beginning of the `main` function being hit.
+默认情况下，您将在被命中的`主`函数的开头观察到一个断点。
 
-In SoftConsole you can add your own breakpoints, inspect and change variables and step over your code, while still being able to interact with Renode in the usual way, via the Monitor.
+在 SoftConsole 中，您可以添加自己的断点、检查和更改变量以及单步执行代码，同时仍然能够通过 Monitor 以通常的方式与 Renode 进行交互。
 
 ![image](miv/softconsole-breakpoint.png)

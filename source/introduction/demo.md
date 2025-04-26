@@ -1,18 +1,17 @@
-# Running your first demo
+# 运行您的第一个 Demo
 
-Your Renode installation contains a number of example scripts, located in the [scripts/ directory](https://github.com/renode/renode/tree/master/scripts) (for example, if you installed from Linux packages, this will be in `/opt/renode/scripts` on your PC).
+您的 Renode 安装包含许多示例脚本，位于 [scripts/ 目录中](https://github.com/renode/renode/tree/master/scripts) （例如，如果您从 Linux 软件包安装，这将位于 `PC 上的 /opt/renode/scripts` 中）。
 
-You can run any of those demos using the `include` or `start` command (`i` and `s` for short) with the script's path (by default relative to the Renode installation directory and your current working directory) as a parameter.
-For example, run a single node STM32F4 Discovery demo as follows:
+您可以使用 `include` 或 `start` 命令（简称 `i` 和 `s`）运行这些演示，并将脚本的路径（默认情况下相对于 Renode 安装目录和当前工作目录）作为参数。例如，运行单个节点 STM32F4 Discovery 演示，如下所示：
 
 ```none
 s @scripts/single-node/stm32f4_discovery.resc
 ```
 
-Remember about `Tab` autocompletion, which will hint you what demos are available.
+记住 `Tab` 自动补全，它会提示你有哪些可用的演示。
 
-The binaries for the demos are hosted on our servers, and can be replaced with your own by setting the `$bin` variable before loading the script (or changing its value inside the script).
+演示的二进制文件托管在我们的服务器上，可以通过在加载脚本之前设置 `$bin` 变量（或在脚本中更改其值）来替换为您自己的二进制文件。
 
-You are free to copy any of the provided demo scripts to your preferred directory and modify them as necessary to match your needs, they should work even from within a different path as they typically only use paths relative to the Renode installation directory.
+您可以自由地将提供的任何演示脚本复制到您的首选目录，并根据需要对其进行修改以满足您的需求，它们应该可以在不同的路径中工作，因为它们通常只使用相对于 Renode 安装目录的路径。
 
-You can also run a script by passing its path to the `renode` command, this will be interpreted as running Renode and using `include @/path/to/script.resc` (note that you will have to start the emulation manually).
+您还可以通过将脚本的路径传递给 `renode` 命令来运行脚本，这将被解释为运行 Renode 并使用 `include @/path/to/script.resc`（请注意，您必须手动启动仿真）。

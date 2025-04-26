@@ -1,42 +1,34 @@
-# Monitor and script syntax
+# 监视器和脚本语法
 
-The Monitor is Renode's command line interface (CLI).
-It lets you talk to Renode and control the emulation using a wide range of built-in functions.
-They allow you to access emulation objects like peripherals, machines, and external connectors.
+Monitor 是 Renode 的命令行界面 （CLI）。它允许您与 Renode 通信并使用各种内置功能控制仿真。它们允许您访问外围设备、计算机和外部连接器等仿真对象。
 
 ```{note}
-If you want to learn more about the Monitor and its basic usage, visit the {doc}`../introduction/using` chapter.
+如果您想了解有关 Monitor 及其基本用法的更多信息，请访问  {doc}`../introduction/using` 章节。
 ```
 
-Generally, commands in Renode are executed line-by-line, and the arguments need to be separated by a space character.
-You can further extend the range of available functions with Python (see [monitor.py](https://github.com/renode/renode/blob/master/scripts/monitor.py) for examples and {doc}`using-python` for instructions how to use Python to extend Renode).
+通常，Renode 中的命令是逐行执行的，参数需要用空格分隔。您可以使用 Python 进一步扩展可用函数的范围（有关示例，请参阅 [monitor.py](https://github.com/renode/renode/blob/master/scripts/monitor.py) 和有关如何使用 Python 扩展 Renode 的说明，请参阅  {doc}`using-python`）。
 
-## Using built-in commands
+## 使用内置命令
 
-Renode comes with dozens of built-in commands.
-You can access the full list of commands with their descriptions using the `help` command in the Monitor.
-To get more detailed information about a certain command, use `help <command>`, e.g.:
+Renode 带有数十个内置命令。您可以使用 Monitor 中的 `help` 命令访问命令的完整列表及其描述。要获取有关某个命令的更多详细信息，请使用 `help <command>`，例如：
 
 ```
 help start
 ```
 
-## Accessing emulation objects
+## 访问仿真对象
 
-To get access to commands available to your machine's emulation objects (e.g., peripherals), you can type the object's name and click Tab twice to activate tab completion.
+要访问计算机的仿真对象（例如外围设备）可用的命令，您可以键入对象的名称，然后单击 Tab 键两次以激活 Tab 键完成。
 
-Emulation objects are in a hierarchy, with `sysbus` being a machine's root for all peripherals.
-If you want to access a UART peripheral of your machine called `uart`, you need to use `sysbus.uart`.
-You can use `using` command to set a default prefix, e.g. `using sysbus` allows you to refer to the UART directly:
+仿真对象位于层次结构中，`sysbus` 是所有外围设备的机器根。如果要访问机器的 UART 外围设备 `uart`，则需要使用 `sysbus.uart`。你可以使用 `using` 命令来设置一个默认前缀，例如`使用 sysbus` 允许你直接引用 UART：
 
 ```
 uart
 ```
 
-You will find that the `using sysbus` command is used in most of the scripts bundled with Renode.
+您会发现 `using sysbus` 命令用于与 Renode 捆绑的大多数脚本中。
 
-Passing the name of the emulation object as a command returns the full list of available methods, properties, and value fields for this object.
-In this list, you can find information on whether the method returns a value, what data types it accepts, and how to use it:
+将仿真对象的名称作为命令传递将返回此对象的可用方法、属性和值字段的完整列表。在此列表中，您可以找到有关该方法是否返回值、它接受哪些数据类型以及如何使用它的信息：
 
 ```none
 (machine-0) uart
@@ -65,7 +57,7 @@ Usage:
  - set: sysbus.uart PropertyName Value
 ```
 
-To inspect the parameters of a specific method available to an object, simply provide the name of the object and the method:
+要检查对象可用的特定方法的参数，只需提供对象的名称和方法：
 
 ```none
 (machine-0) uart WriteWordUsingByte
@@ -75,7 +67,7 @@ Usage:
  sysbus.uart MethodName param1 param2 ...
 ```
 
-Keep in mind that if a method does not require any parameters, providing its name will invoke it:
+请记住，如果一个方法不需要任何参数，则提供其名称将调用它：
 
 ```none
 (machine-0) machine GetTimeSourceInfo
@@ -85,7 +77,7 @@ Current load: NaN
 ...
 ```
 
-Many commands require you to specify a parameter after the command when using them:
+许多命令要求您在使用时在命令后指定一个参数：
 
 ```none
 using sysbus
@@ -93,59 +85,55 @@ using sysbus
 
 ## Accessing attributes of an object
 
-Objects in Renode have access to different methods, properties, fields, and indexers depending on their type.
-The methods are required to access the parameters of a peripheral, and to do it successfully, you need to follow this syntax:
+Renode 中的对象可以根据其类型访问不同的方法、属性、字段和索引器。访问外围设备的参数需要这些方法，要成功执行此作，您需要遵循以下语法：
 
 ```none
 (machine) registrationPoint.peripheral MethodName param1 param2
 ```
 
-To read the value of a byte at offset 0 from the `uart` peripheral registered on the `sysbus` you would type:
+要从 `sysbus` 上注册的 `uart` 外设读取偏移量为 0 的字节值，您可以键入：
 
 ```none
 (machine-0) sysbus.uart ReadByte 0
 ```
 
-Renode enables you to both get and set values for the object's attributes.
-If you do not specify a value at the end of your command, the current value will be returned.
-If you want to set a value, you need to use the proper command and value at the end.
+Renode 使您能够获取和设置对象属性的值。如果未在命令末尾指定值，则将返回当前值。如果要设置值，则需要在末尾使用正确的 command 和 value。
 
-For example, to set the `CyclesPerInstruction` property to `0x000002`, you would use:
+例如，要将 `CyclesPerInstruction` 属性设置为 `0x000002`，您可以使用：
 
 ```none
 (machine-0) cpu CyclesPerInstruction 0x000002
 ```
 
-To get the value of this newly set property, you have to use:
+要获取这个新设置的属性的值，您必须使用：
 
 ```none
 (Mi-V) cpu CyclesPerInstruction
 0x00000002
 ```
 
-Setting indexers is very similar to setting properties, with the main difference being that you have to put your parameters in the square brackets:
+设置索引器与设置属性非常相似，主要区别在于必须将参数放在方括号中：
 
 ```none
 (machine-0) machine IndexerName [param1 param2 ...] Value
 ```
 
-To get the value of the indexer, use:
+若要获取索引器的值，请使用：
 
 ```none
 (machine-0) machine IndexerName [param1 param2 ...]
 ```
 
-The last type of emulation object attribute is a field.
-Their values can be accessed the same as you access properties:
+仿真对象属性的最后一种类型是字段。可以像访问属性一样访问它们的值：
 
 ```none
 (machine-0) machine SystemBusName
 sysbus
 ```
 
-## Supported data types
+## 支持的数据类型
 
-The Monitor supports a wide variety of data types:
+监控器支持多种数据类型:
 
 ```{list-table} Data types supported by the Monitor
 :header-rows: 1
@@ -179,20 +167,18 @@ The Monitor supports a wide variety of data types:
 ```
 
 ```{note}
-You can pass the `path` parameter to a function that accepts `strings` and it will be converted to a `string`.
-Keep in mind that the additional filename autocompletion is only available after an `@` sign.
+你可以将 `path` 参数传递给接受`字符串`的函数，它将被转换为`字符串` 。请记住，额外的文件名自动完成仅在 `@` 符号后可用。
 ```
 
-## Monitor variable types
+## 监控变量类型
 
-There are three ways you can create a single line variable in the Monitor:
+有三种方法可以在 Monitor 中创建单行变量：
 
 * `$var="hello"`,
 * `$var?="hello"`,
 * `set var "hello"`.
 
-The difference between `$var=` and `$var?=` is that the latter indicates a default value if the variable is not set.
-The Monitor also enables you to create multiline variables using the following syntax:
+`$var=` 和 `$var？=` 之间的区别在于，如果未设置变量，则后者表示默认值。Monitor 还允许您使用以下语法创建多行变量：
 
 ```none
 set var """
@@ -201,7 +187,7 @@ set var """
 ```
 
 ````{note}
-When loading a script, you can use slightly different syntax for multiline variables, with the `"""` mark put below the first line:
+加载脚本时，您可以对多行变量使用略有不同的语法，将 `“”“` 标记放在第一行下方：
 
 ```none
 set var
@@ -211,82 +197,75 @@ set var
 ```
 ````
 
-Variables in Renode are contextual, which means that for each machine you can have different variables with the same name.
-You can access them by their full path.
-To create a variable within the machine context of `machine-0`, you would use:
+Renode 中的变量是上下文相关的，这意味着对于每台计算机，您可以拥有具有相同名称的不同变量。您可以通过其完整路径访问它们。要在 `machine-0` 的计算机上下文中创建变量，您可以使用：
 
 ```none
 (machine-0) $machine_0.var
 ```
 
-You can also create global variables if you use the `global` prefix:
+如果使用`全局`前缀，您还可以创建全局变量：
 
 ```none
 (monitor) $global.CWD
 ```
 
-Most of the time, a short name (without the context prefix) should be enough to access variables.
+大多数情况下，一个短名称（没有上下文前缀）应该足以访问变量。
 
-The Monitor gives you access to two special variables: `$ORIGIN` and `$CWD`.
+Monitor 允许您访问两个特殊变量：`$ORIGIN` 和 `$CWD`。
 
-Other types of variables available in Renode are macros, which enable you to encapsulate fragments of your script and execute them easily.
-You can set a new macro using the `macro` command with the name of the new variable and the commands you want it to execute:
+Renode 中可用的其他类型的变量是宏，它使您能够封装脚本的片段并轻松执行它们。您可以使用 `macro` 命令设置新的宏，其中包含新变量的名称和您希望它执行的命令：
 
 ```none
 macro newMacro
 > sysbus LoadELF $bin
 ```
 
-You can create multiline macros using the Monitor multiline syntax.
-You can then execute your newly created macro using the `runMacro` command:
+您可以使用 Monitor 多行语法创建多行宏。然后，您可以使用 `runMacro` 命令执行新创建的宏：
 
 ```none
 runMacro $newMacro
 ```
 
-You can notice that many Renode sample scripts define the `$reset` macro.
-This macro is used whenever the `machine Reset` method is called by the user or via the simulation logic.
+您可能会注意到，许多 Renode 示例脚本都定义了 `$reset` 宏。每当用户或通过模拟逻辑调用`机器 Reset` 方法时，都会使用此宏。
 
-## File paths
+## 文件路径
 
-Each Renode project will require you to supply the file path to the components necessary for your project.
-The vast majority of them use the `@` sign, which activates autocompletion suggestions and represents a path to a file:
+每个 Renode 项目都需要您提供项目所需组件的文件路径。它们中的绝大多数使用 `@` 符号，它激活自动完成建议并表示文件的路径：
 
 ```none
 include @/path/to/platform.repl
 ```
 
-When interpreting a path, Renode looks in several places based on the configured internal `path`.
-By default:
+在解释路径时，Renode 会根据配置的内部`路径`在多个位置进行查找。默认情况下：
 
-* it first checks in the Renode root directory,
-* if the file was not found in the root directory, it checks the current working directory.
+* 它首先检查 Renode 根目录
+* 如果在根目录中找不到该文件，它将检查当前工作目录
 
-You can check and modify the path configuration using the `path` command in Monitor.
+您可以在 Monitor 中使用 `path` 命令检查和修改路径配置。
 
-You can also pass paths as `"string"`, but completion suggestions will not work in that case.
+你也可以将路径作为 `“string”` 传递，但补全建议在这种情况下将不起作用。
 
 ```{note}
-In Renode, you can use paths that are absolute or relative to the current directory.
+在 Renode 中，您可以使用绝对路径或相对于当前目录的路径。
 ```
 
 ### Relative paths
 
-If you want to express a path that is relative to the currently executed Renode script (.resc) you can use the `$ORIGIN` variable:
+如果要表示相对于当前执行的 Renode 脚本 （.resc） 的路径，可以使用 `$ORIGIN` 变量：
 
 ```none
 include $ORIGIN/my_subscript.resc
 ```
 
-An example of usage can be found in [the fomu script](https://github.com/renode/renode/blob/8ae7fdfc6cbe7b01952a8b2d4517d14aff7a297e/scripts/complex/fomu/renode_etherbone_fomu.resc#L5).
+可以在 [fomu 脚本](https://github.com/renode/renode/blob/8ae7fdfc6cbe7b01952a8b2d4517d14aff7a297e/scripts/complex/fomu/renode_etherbone_fomu.resc#L5)中找到用法的示例。
 
 ```{note}
-Do not use `@` at the beginning of an `$ORIGIN`-based path.
+不要在基于 `$ORIGIN` 的路径的开头使用 `@`。
 ```
 
-Keep in mind that the `$ORIGIN` variable is only available inside a script - it won't work interactively in Monitor.
+请记住，`$ORIGIN` 变量仅在脚本中可用 - 它不会在 Monitor 中交互工作。
 
-In Monitor, you can use a special `$CWD` variable to provide a path that is relative to the current working directory:
+在 Monitor 中，您可以使用特殊的 `$CWD` 变量来提供相对于当前工作目录的路径：
 
 ```none
 (machine-0) include $CWD/my_script.resc
@@ -297,37 +276,31 @@ There is no `@` at the beginning of the `$CWD`-based path.
 ```
 
 ```{note}
-In a Robot file, you can also use another variable: `${CURDIR}`.
-It is handled and resolved on the Robot Framework level and has nothing to do with Renode.
-Paths starting with `${CURDIR}` are relative to the Robot file location.
+在 Robot 文件中，您还可以使用另一个变量：`${CURDIR}`。它是在 Robot Framework 级别处理和解决的，与 Renode 无关。以 `${CURDIR}` 开头的路径是相对于机器人文件位置的。
 
-An example of usage can be found in [the LSM9DS1 test](https://github.com/renode/renode/blob/8ae7fdfc6cbe7b01952a8b2d4517d14aff7a297e/tests/peripherals/LSM9DS1.robot#L24).
+可以在 [LSM9DS1 测试](https://github.com/renode/renode/blob/8ae7fdfc6cbe7b01952a8b2d4517d14aff7a297e/tests/peripherals/LSM9DS1.robot#L24)中找到用法示例。
 
-A ``${CURDIR}``-based paths need to be prepended with ``@``.
-Since it is resolved at the Robot Framework level, for Renode, it looks like any other path provided by a user.
+基于 `${CURDIR}` 的路径需要以 `@` 开头。由于它是在 Robot Framework 级别解析的，因此对于 Renode，它看起来就像用户提供的任何其他路径一样。
 
-If you want to learn more about testing with Renode, visit [chapter devoted to this topic](../introduction/testing.md).
+如果您想了解有关使用 Renode 进行测试的更多信息，请访问[专门讨论此主题的章节](../introduction/testing.md) 
 ```
 
 (renode-script-syntax)=
-## Renode Script syntax
+## Renode Script 语法
 
-Many of your projects in Renode will involve using the same platforms and commands multiple times.
-This process can be accelerated significantly using `.resc` files, which are Renode scripts.
-The syntax of `.resc` files is the same as that of the Monitor.
+您在 Renode 中的许多项目将涉及多次使用相同的平台和命令。使用 `.resc` 文件（即 Renode 脚本）可以显著加快此过程。`.resc` 文件的语法与 Monitor 的语法相同。
 
-To load a Renode script, use the `include` or `i` command:
+要加载 Renode 脚本，请使用 `include` 或 `i` 命令：
 
 ```none
 include @/path/to/script.resc
 ```
 
 ```{note}
-You can use the `start` command instead of `include` to start your emulation immediately.
+您可以使用 `start` 命令而不是 `include` 立即启动仿真。
 ```
 
-The syntax of a `.resc` file can be exemplified using one of many scripts built into Renode, like [Nordic Semiconductor NRF52840 script](https://github.com/renode/renode/blob/master/scripts/single-node/nrf52840.resc), which we will cover line by line:
-
+`.resc` 文件的语法可以使用 Renode 中内置的许多脚本之一进行示例，例如 [Nordic Semiconductor NRF52840 脚本](https://github.com/renode/renode/blob/master/scripts/single-node/nrf52840.resc) ，我们将逐行介绍：
 ```none
 :name: nRF52840
 :description: This script runs Zephyr Shell demo on NRF52840.
@@ -348,56 +321,54 @@ macro reset
 runMacro $reset
 ```
 
-The first two lines are comments, and they are not interpreted by the Monitor:
+前两行是注释，它们不由 Monitor 解释：
 
 ```none
 :name: nRF52840
 :description: This script runs Zephyr Shell demo on NRF52840.
 ```
 
-Next, we utilize the `using` command to omit a prefix when referring to a peripheral.
-The command `using sysbus` enables you to refer to the CPU device with `cpu` instead of `sysbus.cpu`:
+接下来，我们使用 `using` 命令在引用外围设备时省略前缀。 `使用 sysbus` 的命令使您能够使用 `cpu` 而不是 `sysbus.cpu` 来引用 CPU 设备：
 
 ```none
 using sysbus
 ```
 
-Then, we create a new machine
+然后，我们创建一个新机器
 
 ```none
 mach create
 ```
 
-We load a platform description from the `.repl` file:
+我们从 `.repl` 文件加载平台描述：
 
 ```none
 machine LoadPlatformDescription @platforms/cpus/nrf52840.repl
 ```
 
-Now, we load a sample shell binary:
+现在，我们加载一个示例 shell 二进制文件：
 
 ```none
 $bin?=@https://dl.antmicro.com/projects/renode/renode-nrf52840-zephyr_shell_module.elf-gf8d05cf-s_1310072-c00fbffd6b65c6238877c4fe52e8228c2a38bf1f
 ```
 
-Next, we set up an UART analyzer for `uart0`:
+接下来，我们为 `uart0` 设置一个 UART 分析器：
 
 ```none
 showAnalyzer uart0
 ```
 
-The next element of our script is a macro, which is executed every time the machine is reset.
+脚本的下一个元素是宏，每次重置计算机时都会执行该宏。
 
-To create a macro in your `.resc` you need to surround your macro's code with `"""` (3 double quotation marks).
-The contents of your macro do not need to be indented with four spaces, but we often do it for readability.
+要在 `.resc` 中创建宏，您需要用 `“”`“（3 个双引号）将宏的代码括起来。宏的内容不需要缩进四个空格，但我们通常这样做是为了可读性。
 
-The macro below loads the previously specified ELF file:
+下面的宏加载以前指定的 ELF 文件：
 
 ```none
     sysbus LoadELF $bin
 ```
 
-Lastly, we call the macro to run it, as it is only executed after it is invoked:
+最后，我们调用宏来运行它，因为它仅在调用后执行：
 
 ```none
 runMacro $reset

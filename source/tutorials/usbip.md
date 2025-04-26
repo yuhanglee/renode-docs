@@ -1,66 +1,57 @@
-# USB/IP support
+# USB/IP 支持
 
-Renode provides a built-in USB/IP server and allows you to export virtual USB devices to the external world.
+Renode 提供内置的 USB/IP 服务器，并允许您将虚拟 USB 设备导出到外部世界。
 
-Exported devices can be attached to the host machine and from that moment the interaction with them
-is the same as with real hardware.
+导出的设备可以连接到主机，从那一刻起，与它们的交互与与真实硬件的交互相同。
 
-This allows for a hybrid setup where part of the system (i.e., virtual USB device and its environment)
-is simulated in Renode and the rest comes from the real world.
+这允许混合设置，其中系统的一部分（即虚拟 USB 设备及其环境）在 Renode 中模拟，其余部分来自现实世界。
 
-## USB/IP protocol
+## USB/IP 协议
 
-The USB/IP protocol allows to share USB devices between a server (exporting party) and a client (importing party)
-over the IP network.
+USB/IP 协议允许通过 IP 网络在服务器（输出方）和客户端（进口方）之间共享 USB 设备。
 
-The protocol is [well supported in Linux](https://github.com/torvalds/linux/tree/master/tools/usb/usbip), and there exists
-a [corresponding project for Windows as well](https://github.com/cezanne/usbip-win), the latter however has not been tested.
+该协议[在 Linux 中得到了很好的支持](https://github.com/torvalds/linux/tree/master/tools/usb/usbip) ，并且也有[适用于 Windows 的相应项目](https://github.com/cezanne/usbip-win) ，但后者尚未经过测试。
 
-Renode currently works as a server only - it is able to support exporting devices only, but is *not able* to
-connect physical USB devices to the emulation.
+Renode 目前仅作为服务器工作 - 它只能支持导出设备，但_无法_将物理 USB 设备连接到仿真。
 
-## Creating a USB/IP server
+## 创建 USB/IP 服务器
 
-In order to create a USB/IP server instance in Renode, type the following in the Monitor:
+要在 Renode 中创建 USB/IP 服务器实例，请在监视器中键入以下内容：
 
 ```
 (monitor) emulation CreateUSBIPServer
 ```
 
-As a result a `host.usb` device is created in the emulation and the server
-is started.
+因此，将在仿真中创建 `host.usb` 设备并启动服务器。
 
-Now you can connect to it from your host machine.
-First, you need to import the `vhci_hcd` kernel module:
+现在您可以从主机连接到它。首先，您需要导入 `vhci_hcd` 内核模块：
 
 ```sh
 $ sudo modprobe vhci_hcd
 ```
 
-Now, you can list exported devices:
+现在，您可以列出导出的设备：
 
 ```sh
 $ sudo usbip list -r 127.0.0.1
 usbip: info: no exportable devices found on 127.0.0.1
 ```
 
-The output above informs that Renode is not exporting any devices at the moment.
+上面的输出通知 Renode 目前没有导出任何设备。
 
-## Exporting devices
+## 导出设备
 
-Let's export a simple USB device - e.g. a mouse:
+让我们导出一个简单的 USB 设备 - 例如鼠标：
 
 ```none
 (monitor) host.usb AttachUSBMouse
 ```
 
 :::{note}
-Note that there are some helper methods allowing to easily attach simple USB devices
-like mouse, keyboard or pendrive directly from `host.usb`. For more advanced scenario
-see [foboot_usbip](#real-life-scenario-foboot).
+请注意，有一些辅助方法允许直接从 `host.usb` 轻松连接简单的 USB 设备，如鼠标、键盘或笔式驱动器。有关更高级的方案，请参阅  [foboot_usbip](#real-life-scenario-foboot).
 :::
 
-List exported devices again:
+再次列出导出的设备：
 
 ```sh
 $ sudo usbip list -r 127.0.0.1
@@ -73,18 +64,17 @@ Exportable USB devices
         :  0 - Human Interface Device / Boot Interface Subclass / Mouse (03/01/02)
 ```
 
-## Attaching exported device to host
+## 将导出的设备附加到主机
 
-The next step is to attach the exported virtual USB device to the host machine:
+下一步是将导出的虚拟 USB 设备附加到主机：
 
 ```sh
 $ sudo usbip attach -r 127.0.0.1 -b 1-0
 ```
 
-Note that the `-b` argument must match the device id returned by the `usb list` command.
+请注意，`-b` 参数必须与 `usb list` 命令返回的设备 ID 匹配。
 
-A new USB mouse should be now visible in the host.
-Confirm it by reading the system logs:
+新的 USB 鼠标现在应该在主机中可见。通过阅读系统日志来确认它：
 
 ```sh
 $ sudo dmesg
@@ -95,7 +85,7 @@ $ sudo dmesg
 [1310770.560888] hid-generic 0003:0000:0000.002D: input,hidraw4: USB HID v0.00 Mouse [HID 0000:0000] on usb-vhci_hcd.0-1/input0
 ```
 
-Or with `lsusb`:
+或者使用 `lsusb`：
 
 ```sh
 $ lsusb -v -d 0000:0000
@@ -159,60 +149,57 @@ Configuration Descriptor:
         bInterval              10
 ```
 
-Now you can control your mouse from Renode.
-Type:
+现在您可以从 Renode 控制鼠标。类型：
 
 ```none
 (monitor) host.usb MoveMouse 100 100
 ```
 
-and observe the cursor moving on the screen.
+并观察光标在屏幕上移动。
 
-## Real life scenario: Foboot
+## 现实生活场景：Foboot
 
-In this section we will show how to run a simulation of [Foboot: The Bootloader for Fomu](https://github.com/im-tomu/foboot).
+在本节中，我们将展示如何运行 Foboot 的模拟 [：Fomu 的 Bootloader](https://github.com/im-tomu/foboot)。
 
-Foboot runs on the Fomu platform that uses the ValentyUSB core to implement a software-driven USB
-device where the whole logic (including generating USB descriptors) is executed by the CPU.
+Foboot 在 Fomu 平台上运行，该平台使用 ValentyUSB 内核实现软件驱动的 USB 设备，其中整个逻辑（包括生成 USB 描述符）由 CPU 执行。
 
-### Create a Fomu platform
+### 创建 Fomu 平台
 
-Renode comes with a definition of the Fomu platform.
-To create a new virtual Fomu instance, type in the Monitor:
+Renode 附带了 Fomu 平台的定义。要创建新的虚拟 Fomu 实例，请在监视器中键入：
 
 ```none
 (monitor) mach create
 (machine-0) machine LoadPlatformDescription @platforms/cpus/fomu.repl
 ```
 
-Load the Foboot software:
+加载 Foboot 软件：
 
 ```none
 (machine-0) sysbus LoadELF @https://antmicro.com/projects/renode/fomu--foboot.elf-s_112080-70b1181d470646a31ebef7300fc8e6dc5447e282
 ```
 
-Create a USB/IP server and export Fomu:
+创建 USB/IP 服务器并导出 Fomu：
 
 ```none
 (machine-0) emulation CreateUSBIPServer
 (machine-0) host.usb Register sysbus.valenty
 ```
 
-Start the emulation:
+启动仿真：
 
 ```none
 (machine-0) start
 ```
 
-### Use it on your host machine
+### 在您的主机上使用它
 
-Import Fomu on the host:
+在主机上导入 Fomu：
 
 ```sh
 $ sudo usbip attach -r 127.0.0.1 -b 1-0
 ```
 
-Upload software using `dfu-util`:
+使用 `dfu-util` 上传软件：
 
 ```sh
 $ wget https://antmicro.com/projects/renode/fomu--test_binary_flash.bin-s_1016-4a3c37baf69aeb401f834521b0ac4bc6d157ecdf -O fomu--test_binary_flash.bin
@@ -243,13 +230,13 @@ state(8) = dfuMANIFEST-WAIT-RESET, status(0) = No error condition is present
 Done!
 ```
 
-Disconnect `dfu-util` to reboot into the uploaded software:
+断开 `dfu-util` 连接以重新启动到上传的软件：
 
 ```sh
 $ sudo dfu-util -e
 ```
 
-As Fomu does not have many interfaces we can observe, the uploaded binary is quite trivial.
-Looking through the log you will see repeated writes of consecutive values to 0x40000000.
+由于 Fomu 没有很多我们可以观察到的接口，因此上传的二进制文件非常简单。查看日志，您将看到连续值重复写入 0x40000000。
 
-To analyze the loaded binary in more detail you can use Renode's [GDB debugging capabilities](../debugging/gdb.md) or extensive [logging support](../basic/logger.md).
+要更详细地分析加载的二进制文件，您可以使用 Renode 的 [GDB 调试功能](../debugging/gdb.md)或广泛的[日志记录支持](../basic/logger.md) 。
+

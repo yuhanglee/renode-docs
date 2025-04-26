@@ -1,27 +1,26 @@
-# Bluetooth Low Energy simulation in Renode
+# Renode 中的低功耗蓝牙仿真
 
-Bluetooth Low Energy is a widespread wireless protocol most commonly used in consumer devices such as blood pressure monitors, wearables, and smart home appliances.
-Thanks to its multi-node networking capabilities, Renode can be used to develop and test complete products in those and other areas using BLE.
+低功耗蓝牙是一种广泛使用的无线协议，最常用于血压监测仪、可穿戴设备和智能家用电器等消费类设备。由于其多节点网络功能，Renode 可用于使用 BLE 在这些领域和其他领域开发和测试完整的产品。
 
-Renode support for BLE has primarily been developed in the context of the [Zephyr RTOS](https://docs.zephyrproject.org/latest/introduction/index.html) and Nordic's [nRF52840 SoC](https://www.nordicsemi.com/Products/nRF52840).
+Renode 对 BLE 的支持主要是在 [Zephyr RTOS](https://docs.zephyrproject.org/latest/introduction/index.html) 和 Nordic 的 [nRF52840 SoC](https://www.nordicsemi.com/Products/nRF52840) 的上下文中开发的。
 
-## Running a precompiled demo
+## 运行预编译的 demo
 
-You can start with a precompiled demo which will just run two nodes communicating over BLE. Use the following command in the Monitor to do that:
+您可以从预编译的 demo 开始，该 demo 将只运行两个通过 BLE 通信的节点。在 Monitor 中使用以下命令执行此作：
 
 ```none
 (monitor) include @scripts/multi-node/nrf52840-ble-zephyr.resc
 ```
 
-You should see two serial ports open and packets being sent.
+您应该看到两个串行端口打开并正在发送数据包。
 
-## Building your own Zephyr samples
+## 构建你自己的 Zephyr 示例
 
-You can see the full list of Zephyr samples and demos in the [Zephyr documentation](https://docs.zephyrproject.org/latest/samples/index.html) which describes in more detail how to install and use the RTOS.
+您可以在 [Zephyr 文档中](https://docs.zephyrproject.org/latest/samples/index.html)查看 Zephyr 示例和演示的完整列表，其中更详细地描述了如何安装和使用 RTOS。
 
-Here we will focus on some essentials which are specific to this demo.
+在这里，我们将重点介绍本演示特有的一些基本要素。
 
-To build the relevant samples, after [setting up Zephyr as usual](https://docs.zephyrproject.org/latest/getting_started/index.html) you can use the following commands.
+要构建相关示例， [在像往常一样设置 Zephyr](https://docs.zephyrproject.org/latest/getting_started/index.html) 后，您可以使用以下命令。
 
 ```sh
 cd ~/zephyrproject/zephyr
@@ -33,10 +32,10 @@ cp peripheral/zephyr/zephyr.elf ./zephyr-ble-peripheral_hr.elf
 ```
 
 ```{note}
-If you want to run a new build and remove byproducts of the previous build, you should add `-p auto` parameter to your command.
+如果要运行新的生成并删除先前生成的副产品，则应将 `-p auto` 参数添加到命令中。
 ```
 
-To use these binaries in the demo shipped with Renode, you can override the relevant variables before you load the script:
+要在 Renode 附带的演示中使用这些二进制文件，您可以在加载脚本之前覆盖相关变量：
 
 ```none
 (monitor) $central_bin=@zephyr-ble-central_hr.elf
@@ -45,9 +44,9 @@ To use these binaries in the demo shipped with Renode, you can override the rele
 
 ```
 
-## Looking into the script
+## 查看脚本
 
-Below you can find a full example which creates 2 devices that generate and read heart-rate monitor data over BLE:
+您可以在下面找到一个完整的示例，该示例创建了 2 个通过 BLE 生成和读取心率监测器数据的设备：
 
 ```none
 using sysbus
@@ -85,21 +84,18 @@ echo "Script loaded. Now start with the 'start' command."
 echo ""
 ```
 
-The script is responsible for creating two machines, opening up their UART analyzers, connecting them in a single network, and loading the provided binaries.
+该脚本负责创建两台计算机，打开它们的 UART 分析器，将它们连接到单个网络中，并加载提供的二进制文件。
 
-The first Renode "machine" - dubbed `central` - runs the [central_hr sample](https://github.com/zephyrproject-rtos/zephyr/tree/main/samples/bluetooth/central_hr) which looks for active heart-rate monitors using BLE and connects to the device with the strongest signal.
-The second one - `peripheral` - runs the [peripheral_hr sample](https://github.com/zephyrproject-rtos/zephyr/tree/main/samples/bluetooth/peripheral_hr), which creates a machine that functions as a heart-rate monitor and generates dummy heart-rate values.
+第一台 Renode“机器” - 称为 `central` - 运行 [central_hr 样本](https://github.com/zephyrproject-rtos/zephyr/tree/main/samples/bluetooth/central_hr) ，该样本使用 BLE 查找有源心率监测器，并连接到信号最强的设备。第二个 - `外围设备` - 运行 [peripheral_hr 样本](https://github.com/zephyrproject-rtos/zephyr/tree/main/samples/bluetooth/peripheral_hr) ，这将创建一个用作心率监测器并生成虚拟心率值的机器。
 
-When the connection is established, `central` will report data reception from `peripheral`.
+建立连接后，`central` 将报告来自`外围设备`的数据接收。
 
-To learn more about specific commands, see the {doc}`../basic/machines` chapter and [the comments in the script on the Renode repository](https://github.com/renode/renode/blob/master/scripts/multi-node/nrf52840-ble-zephyr.resc).
+要了解有关特定命令的更多信息，请参阅 [Renode 存储库上的](https://github.com/renode/renode/blob/master/scripts/multi-node/nrf52840-ble-zephyr.resc) “ [使用计算机](https://renode.readthedocs.io/en/latest/basic/machines.html) ”章节和脚本中的注释。
 
 
-## Packet interception hooks with BLE
+## 使用 BLE 的数据包拦截钩子
 
-You can make your simulated machine react to a wireless networking (e.g. BLE) packet appearing on the radio medium by means of a Python hook.
-Such a hook will execute Python code either directly from the Monitor or from a designated file.
-To set up a packet interception hook on the machine from the example above, you would run:
+您可以通过 Python 钩子使模拟机器对无线电介质上出现的无线网络（例如 BLE）数据包做出反应。这样的 hook 将直接从 Monitor 或指定文件执行 Python 代码。要在计算机上设置上述示例中的数据包拦截钩子，您可以运行：
 
 ```none
 (peripheral) wireless SetPacketHookFromScript radio "self.DebugLog('Received a packet of {} bytes'.format(len(packet)))"

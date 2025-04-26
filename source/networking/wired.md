@@ -1,77 +1,74 @@
-# Setting up a wired network
+# 设置有线网络
 
-Renode allows you to create complex network topologies using the Monitor.
+Renode 允许您使用 Monitor 创建复杂的网络拓扑。
 
-Both wired and [wireless](./wireless.md) networks can coexist, but are created with different commands.
+有线和[无线网络](./wireless.md)可以共存，但使用不同的命令创建。
 
-## Creating a switch
+## 创建开关
 
-Wired network interfaces can be connected via switches.
-Depending on the desired topology, you can create one or more switches and attach interfaces accordingly.
+有线网络接口可以通过交换机连接。根据所需的拓扑，您可以创建一个或多个交换机并相应地连接接口。
 
-The network traffic is not affected by the number of nodes connected to one switch.
+网络流量不受连接到一台交换机的节点数的影响。
 
-To create a switch named `switch1`, run:
+要创建名为 `switch1` 的交换机，请运行：
 
 ```
 (monitor) emulation CreateSwitch "switch1"
 ```
 
-## Connecting interfaces
+## 连接接口
 
-To connect an interface to a switch you have to set a proper [machine context](../basic/machines.md#switching-between-machines).
+要将接口连接到交换机，您必须设置适当的[机器上下文](../basic/machines.md#switching-between-machines) 。
 
-Then, use the `connector` mechanism to attach the interface:
+然后，使用`连接器`机制连接接口：
 
 ```none
 (machine-0) connector Connect sysbus.ethernet switch1
 ```
 
-Although it is not a common setup, each interface can be connected to many switches at the same time.
+虽然这不是常见的设置，但每个接口可以同时连接到许多交换机。
 
-## Disconnecting interfaces
+## 断开接口
 
-You can disconnect network interfaces from a switch by running:
+您可以通过运行以下命令来断开网络接口与交换机的连接：
 
 ```none
 (machine-0) connector Disconnect sysbus.ethernet switch1
 ```
 
-To disconnect from all connected switches, use:
+要断开与所有连接的交换机的连接，请使用：
 
 ```none
 (machine-0) connector DisconnectFromAll sysbus.ethernet
 ```
 
-## Starting the interface
+## 启动界面
 
-A `Switch` object is created as "paused".
-To enable communication via a switch you must start it manually, either by running:
+`Switch` 对象创建为 “paused”。要启用通过开关的通信，您必须通过运行以下命令手动启动它：
 
 ```
 (monitor) start
 ```
 
-or, if your emulation is already started, with:
+或者，如果您的仿真已启动，请使用：
 
 ```none
 (monitor) switch1 Start
 ```
 
-## Controlling the traffic
+## 控制流量
 
-If a packet has a specified destination MAC address, the switch will try to deliver it to the appropriate interface.
-If, however, the address is not set or the switch is not aware of an interface with this MAC, the packet is broadcast to all connected interfaces.
+如果数据包具有指定的目标 MAC 地址，交换机将尝试将其传送到相应的接口。但是，如果未设置地址或交换机不知道具有此 MAC 的接口，则数据包将广播到所有连接的接口。
 
-You can alter this behavior by enabling promiscuous mode for a specified interface:
+您可以通过为指定接口启用混杂模式来更改此行为：
 
 ```none
 (machine-0) switch1 EnablePromiscuousMode sysbus.ethernet
 ```
 
-After this command, the `sysbus.ethernet` interface will receive all packets delivered to `switch1` from other interfaces.
+在此命令之后，`sysbus.ethernet` 接口将接收从其他接口传送到 `switch1` 的所有数据包。
 
-To disable promiscuous mode, run:
+要禁用混杂模式，请运行：
 
 ```none
 (machine-0) switch1 DisablePromiscuousMode sysbus.ethernet

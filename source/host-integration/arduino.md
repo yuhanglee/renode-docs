@@ -1,50 +1,46 @@
-# Arduino IDE/CLI integration
+# Arduino IDE/CLI 集成
 
-Renode supports integration with [Arduino IDE](https://www.arduino.cc/en/software), making it possible to easily upload and run software targeting Arm-based Arduino boards (currently the Arduino Nano 33 BLE is supported) directly from the IDE.
-The same interface can also be used to upload binaries from the console using [Arduino CLI](https://www.arduino.cc/pro/cli).
+Renode 支持与 [Arduino IDE](https://www.arduino.cc/en/software) 集成，从而可以直接从 IDE 轻松上传和运行针对基于 Arm 的 Arduino 板（目前支持 Arduino Nano 33 BLE）的软件。相同的接口也可用于使用 [Arduino CLI](https://www.arduino.cc/pro/cli) 从控制台上传二进制文件。
 
-This document describes how to use the integration layer on a TensorFlow Lite\'s Hello World project example, but this should work for any custom project as well.
+本文档介绍了如何在 TensorFlow Lite 的 Hello World 项目示例中使用集成层，但这也适用于任何自定义项目。
 
 :::{note}
-The Renode-Arduino integration layer is available on Linux only.
+Renode-Arduino 集成层仅在 Linux 上可用。
 :::
 
-## Installing TensorFlow examples
+## 安装 TensorFlow 示例
 
-TensorFlow Lite examples do not come preinstalled with Arduino IDE.
-In order to add them to your system, select `Tools -> Manage Libraries` and search for the "Arduino_TensorFlowLite" library.
-Select the 2.1.0-ALPHA version (**not** the precompiled one) and press the `Install` button:
+TensorFlow Lite 示例未预装 Arduino IDE。要将它们添加到您的系统中，请选择`工具 -> 管理库`并搜索 “Arduino_TensorFlowLite” 库。选择 2.1.0-ALPHA 版本（ **不是**预编译版本），然后按 `Install` 按钮：
 
 ![image](img/arduino_ide_libraries.png)
 
-At the moment, the support for `USBSerial` in Renode is still experimental, so you need to patch the library with the following command:
+目前，Renode 中对 `USBSerial` 的支持仍处于试验阶段，因此您需要使用以下命令修补库：
 
 ```sh
 sed -i'' '/#define DEBUG_SERIAL_OBJECT/s/(Serial)/(Serial1)/' ~/Arduino/libraries/Arduino_TensorFlowLite/src/tensorflow/lite/micro/arduino/debug_log.cpp
 ```
 
-This will switch serial output from USBSerial to UART.
+这会将串行输出从 USBSerial 切换到 UART。
 
 :::{note}
-Please make sure that the path to installed Arduino libraries is correct.
+请确保已安装的 Arduino 库的路径正确。
 :::
 
 (ard-configuring-renode)=
 
-## Configuring Renode
+## 配置 Renode
 
-Renode provides the [ArduinoLoader](https://github.com/renode/renode/blob/master/src/Renode/Integrations/ArduinoLoader.cs) pseudo-device that is used to integrate with Arduino IDE/CLI.
-It acts as a USB device (CDC/ACM profile) and implements the arduino bootloader protocol (SAM-BA).
+Renode 提供了 [ArduinoLoader](https://github.com/renode/renode/blob/master/src/Renode/Integrations/ArduinoLoader.cs) 伪设备，用于与 Arduino IDE/CLI 集成。它充当 USB 设备（CDC/ACM 配置文件）并实现 arduino 引导加载程序协议 （SAM-BA）。
 
-In order to connect Renode to Arduino IDE/CLI, perform the following steps:
+要将 Renode 连接到 Arduino IDE/CLI，请执行以下步骤：
 
-1. Enable support for USB/IP in the host machine:
+1. 在主机中启用对 USB/IP 的支持：
 
    ```sh
    $ sudo modprobe vhci_hcd
    ```
 
-2. Create the Arduino Nano 33 BLE platform in Monitor:
+2. 在 Monitor 中创建 Arduino Nano 33 BLE 平台：
 
    ```none
    (monitor) mach create
@@ -52,10 +48,10 @@ In order to connect Renode to Arduino IDE/CLI, perform the following steps:
    ```
 
    :::{note}
-   `ArduinoLoader` supports any platform based on a Cortex-M CPU.
+  `ArduinoLoader` 支持任何基于 Cortex-M CPU 的平台。
    :::
 
-2. Start the USB/IP server in Renode and attach the loader to it:
+2. 在 Renode 中启动 USB/IP 服务器并将加载器连接到它：
 
     ```none
    (machine-0) emulation CreateUSBIPServer
@@ -63,99 +59,96 @@ In order to connect Renode to Arduino IDE/CLI, perform the following steps:
     ```
 
 :::{note}
-When creating the loader, you can specify the binary load address ([0x10000]{.title-ref} in the case of Arduino Nano 33 BLE board), the port through which the bootloader is connected to the [host.usb]{.title-ref} controller (should be changed if you have other devices already connected) and the name of the loader (`arduinoLoader` in this case).
+创建加载器时，您可以指定二进制加载地址（在 Arduino Nano 33 BLE 板的情况下为 [0x10000]{.title-ref}）、引导加载程序连接到 [host.usb]{.title-ref} 控制器的端口（如果您已经连接了其他设备，则应更改）和加载器的名称（在本例中为 `arduinoLoader`）。
 
-The values below are the default ones, so you can skip all of them leaving just:
+下面的值是默认值，因此您可以跳过所有值，只留下：
 
 ```none
 (machine-0) host.usb CreateArduinoLoader sysbus.cpu
 ```
 :::
 
-3. Once your simulation is fully set-up and you are ready to receive and run the binary, start the loader:
+3. 一旦您的模拟完全设置完毕，并且您准备好接收和运行二进制文件，请启动加载器：
 
     ```none
    (machine-0) arduinoLoader WaitForBinary 120 true
    ```
 
-This will automatically connect Renode to the host using the `usbip` command (this uses `sudo` so you might be asked for your password)
-and wait 120 seconds for the binary to be uploaded by the Arduino IDE/CLI.
+这将使用 `usbip` 命令自动将 Renode 连接到主机（这使用 `sudo`，因此系统可能会要求您输入密码）并等待 120 秒，以便 Arduino IDE/CLI 上传二进制文件。
 
 :::{note}
-If you don\'t want Renode to automatically connect to your host with the usbip command, do not pass the last argument (`true`).
-Remember that in such case you must do it manually before uploading the binary, as otherwise Arduino IDE/CLI won\'t be able to detect Renode and the process will fail.
+如果您不希望 Renode 使用 usbip 命令自动连接到您的主机，请不要传递最后一个参数 （`true`）。请记住，在这种情况下，您必须在上传二进制文件之前手动执行此作，否则 Arduino IDE/CLI 将无法检测到 Renode，并且该过程将失败。
 :::
 
-## Loading from Arduino IDE
+## 从 Arduino IDE 加载
 
-Start the Arduino IDE and select your sketchbook (in this example we will use the [TensorFlow Lite Hello World](https://github.com/tensorflow/tensorflow/tree/master/tensorflow/lite/micro/examples/hello_world) sample).
+启动 Arduino IDE 并选择您的速写本（在本例中，我们将使用 [TensorFlow Lite Hello World](https://github.com/tensorflow/tensorflow/tree/master/tensorflow/lite/micro/examples/hello_world) 示例）。
 
 ![image](img/arduino_ide_examples.png)
 
 :::{note}
-The Arduino Nano 33 BLE board support does not come with Arduino IDE by default.
-You need to add it in the `Tools -> Board -> Boards Manager` menu by installing the "Arduino Mbed OS Nano Boards" package.
+默认情况下，Arduino Nano 33 BLE 板支持不附带 Arduino IDE。您需要通过安装“Arduino Mbed OS Nano Boards”包将其添加到 `Tools -> Board -> Boards Manager` 菜单中。
 :::
 
-Select the `Arduino Nano 33 BLE` board from the `Tools -> Board -> Arduino Mbed OS Nano Boards` menu.
+从 `Tools -> Board -> Arduino Mbed OS Nano Boards` 菜单中选择 `Arduino Nano 33 BLE` 板。
 
-Compile your project by pressing the `Verify` button.
+按 `Verify` 按钮编译您的项目
 
 ![image](img/arduino_ide_verify.png)
 
-Once everything compiles correctly, start `ArduinoLoader` in Renode (as described in [the previous section](#ard-configuring-renode)).
+一切编译正确后，在 Renode 中启动 `ArduinoLoader` （如[上一节](#ard-configuring-renode)所述）。
 
-Select the proper `/dev/ttyACMx` device as a port from the `Tools -> Port` menu.
+从 `Tools -> Port` 菜单中选择正确的 `/dev/ttyACMx` 设备作为端口。
 
 ![image](img/arduino_ide_port.png)
 
-Upload the binary by pressing the `Upload` button.
+按 `Upload` 按钮上传二进制文件
 
 ![image](img/arduino_ide_upload.png)
 
-## Loading from Arduino CLI
+## 从 Arduino CLI 加载
 
-You don't have to use the IDE in order to upload the binary - there is also an Arduino CLI tool that allows you to compile and upload your project directly from the command line.
+您不必使用 IDE 即可上传二进制文件 - 还有一个 Arduino CLI 工具，允许您直接从命令行编译和上传您的项目。.
 
 :::{note}
-Make sure that `arduino-cli` is installed in your system (it does not come with Arduino IDE by default) and available in PATH.
-For details, see the [project's github page](https://github.com/arduino/arduino-cli).
+确保您的系统中已安装 `arduino-cli`（默认情况下不附带 Arduino IDE）并在 PATH 中可用。有关详细信息，请参阅[项目的 github 页面](https://github.com/arduino/arduino-cli) 。
 :::
 
-First, compile a project with the following command:
+首先，使用以下命令编译一个项目：
 ```sh
 arduino-cli compile -b arduino:mbed:nano33ble hello_world.ino
 ```
 
-Make sure that everything compiles fine and start `ArduinoLoader` in Renode (as described in [the previous section](#ard-configuring-renode)).
+确保一切编译正常，并在 Renode 中启动 `ArduinoLoader` （如[上一节](#ard-configuring-renode)所述）。
 
-Now, upload the binary with the following command:
+现在，使用以下命令上传二进制文件：
 
 ```sh
 arduino-cli upload -b arduino:mbed:nano33ble --port /dev/ttyACM0 hello_world.ino
 ```
 
 :::{note}
-Please, make sure to select the proper `/dev/ttyACMx` device.
+请确保选择正确的 `/dev/ttyACMx` 设备。
 :::
 
-## Starting the simulation
+## 开始模拟
 
-Once the binary is received, you'll see the following message in Monitor:
+收到二进制文件后，您将在 Monitor 中看到以下消息：
 
 ```none
 (machine-0) arduinoLoader WaitForBinary 120 true
 Binary of size 217088 bytes loaded at 0x10000
 ```
 
-Now you can start the simulation with:
+现在，您可以通过以下方式开始模拟：
 
 ```none
 (machine-0) showAnalyzer sysbus.uart0
 (machine-0) start
 
 ```
-On UART you should see the following output:
+
+在 UART 上，您应该看到以下输出
 
 ```
 123

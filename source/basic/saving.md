@@ -1,33 +1,32 @@
 (state-saving)=
 
-# State saving and loading
+# 状态保存和加载
 
-Renode allows you to save the state of the emulation to a file.
+Renode 允许您将仿真的状态保存到文件中。
 
-Such a file can be transferred to another user and then loaded to fully recreate the original setup.
-No additional binaries or configuration files are required.
+可以将此类文件传输给其他用户，然后加载以完全重新创建原始设置。不需要额外的二进制文件或配置文件。
 
-To save the emulation state to a file called `statefile.save`, run:
+要将仿真状态保存到名为 `statefile.save` 的文件中，请运行：
 
 ```none
 (monitor) Save @statefile.save
 ```
 
-This file can be used with the `Load` command:
+此文件可与 `Load` 命令一起使用：
 
 ```none
 (monitor) Load @statefile.save
 ```
 
-Or you can load it when starting Renode directly from CLI:
+或者，您可以在直接从 CLI 启动 Renode 时加载它：
 
 ```sh
 $ renode statefile.save
 ```
 
-It is important to remember that a state file created on one version of Renode may not be compatible with another one.
+请务必记住，在一个版本的 Renode 上创建的状态文件可能与另一个版本不兼容。
 
-Please note that loading the state file clears the current emulation, and is equivalent to:
+请注意，加载状态文件会清除当前仿真，相当于：
 
 ```none
 (monitor) Clear
@@ -35,7 +34,7 @@ Please note that loading the state file clears the current emulation, and is equ
 ```
 
 ````{note}
-After the state is loaded, you must manually set the Monitor's context and reopen the UART windows:
+加载状态后，您必须手动设置 Monitor 的上下文并重新打开 UART 窗口：
 
 ```none
 (monitor) mach set 0
@@ -43,22 +42,21 @@ After the state is loaded, you must manually set the Monitor's context and reope
 ```
 ````
 
-## State saving in tests
+## 测试中的状态保存
 
-It's possible to use the state saving and loading mechanism when defining complex Robot tests.
-For details see the {ref}`Test cases dependencies <robot-dependencies>` section.
+It's possible to use the state在定义复杂的 Robot 测试时，可以使用状态保存和加载机制。有关详细信息，请参阅 {ref}`Test cases dependencies <robot-dependencies>`  部分。 
 
-## Loading gzip compressed save files
+## 加载 gzip 压缩的保存文件
 
-Renode also supports loading snapshots compressed with gzip.
+Renode 还支持加载使用 gzip 压缩的快照。
 
-You can load them the same way as regular save files:
+您可以像加载常规保存文件一样加载它们：
 
 ```none
 (monitor) Load @statefile.save.gz
 ```
 
-Or directly from CLI:
+或直接从 CLI 获取：
 
 ```sh
 $ renode statefile.save.gz

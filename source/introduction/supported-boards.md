@@ -1,24 +1,24 @@
-# Supported boards
+# 支持的板卡
 
-Renode supports a wide array of hardware platforms, covering multiple architectures, CPU families and providing various I/O capabilities.
+Renode 支持各种硬件平台，涵盖多种架构、CPU 系列并提供各种 I/O 功能。
 
-You can explore IoT development boards supported as part of the [Zephyr Dashboard](https://zephyr-dashboard.renode.io/) and learn more about them in the [Interactive System Designer](https://designer.antmicro.com).
+您可以探索作为 [Zephyr Dashboard](https://zephyr-dashboard.renode.io/) 一部分支持的 IoT 开发板，并在[交互式系统设计器](https://designer.antmicro.com/)中了解有关它们的更多信息。
 
-In the Interactive System Designer, you can see pre-executed runs of different embedded software binaries as well as use the available artifacts to run the demos yourself.
+在 Interactive System Designer 中，您可以查看不同嵌入式软件二进制文件的预执行运行，并使用可用的工件自己运行演示。
 
-On top of that, this chapter contains an (incomplete) list of selected supported hardware targets with dedicated demos - all of these include sample software binaries that run both on real hardware and in Renode.
+最重要的是，本章包含一个选定的受支持硬件目标的（不完整）列表，其中包含专门的演示 - 所有这些都包括在实际硬件和 Renode 中运行的示例软件二进制文件。
 
-To run example software on any of the below boards, simply run Renode and use:
+要在以下任何板上运行示例软件，只需运行 Renode 并使用：
 
 ```none
 s @scripts/PATH/TO/SCRIPT-NAME.resc
 ```
 
-Tab completion is available also for filenames, so be sure to explore the available demos.
+Tab 键补全也可用于文件名，因此请务必浏览可用的演示。
 
-The ultimate goal of Renode is to run any binary-compatible software targeted for any of those hardware platforms without modification, although of course your specific use case may require extending the provided hardware description / models.
+Renode 的最终目标是无需修改即可运行针对任何这些硬件平台的任何二进制兼容软件，尽管您的特定用例当然可能需要扩展提供的硬件描述/模型。
 
-Boards supported in this way include:
+以这种方式支持的 Board 包括：
 
 <style>
 .boards-table { table-layout: fixed; width: 100% }
@@ -253,11 +253,11 @@ Boards supported in this way include:
   -
 ::::
 
-There are of course more, and new ones are being added quickly - Renode makes it easy to create your own platform which reuses the same peripherals / CPUs that exist in other platforms.
+当然，还有更多，而且新的正在迅速添加 - Renode 可以轻松创建您自己的平台，该平台重用其他平台中存在的相同外围设备/CPU。
 
-We provide commerical services to add new platforms - if you need help in this regard, please write to [support@renode.io](mailto:support@renode.io).
+我们提供商业服务以添加新平台 - 如果您在这方面需要帮助，请写信至 [support@renode.io](mailto:support@renode.io).
 
-# Supported peripherals
+# 支持的外设
 
 <style>
   .peripherals-table tr {

@@ -1,75 +1,66 @@
-# Describing platforms
+# 描述平台
 
-Renode uses a text-based format to describe platforms.
-Platform description files typically have the `.repl` extension, but this is not a requirement.
+Renode 使用基于文本的格式来描述平台。平台描述文件通常具有 `.repl` 扩展名，但这不是必需的。
 
-The broad description of the format and its grammar is available in the [platform-description-format](../advanced/platform_description_format.md) section.
-Here we present the basic usage and most common scenarios.
+格式及其语法的广泛描述可在 [platform-description-format](../advanced/platform_description_format.md) 部分找到。下面我们介绍基本用法和最常见的场景。
 
-## Defining peripherals
+## 定义外围设备
 
-To add a peripheral, you need to know its type, choose its name and the registration point.
-Most peripherals will be registered on the `sysbus` - a peripheral that is always available and does not have to be explicitly defined.
+要添加外围设备，您需要知道其类型，选择其名称和注册点。大多数外围设备将在 `sysbus` 上注册 - 一个始终可用的外围设备，不必明确定义。
 
-The type name has to indicate the class of the peripheral model.
-This has to be a full name with a namespace, but the default namespace, `Antmicro.Renode.Peripherals`, can be omitted.
+类型名称必须指示外围模型的类。这必须是带有命名空间的全名，但可以省略默认命名空间 `Antmicro.Renode.Peripherals`。
 
-For example, to create a UART object of type `Antmicro.Renode.Peripherals.UART.MiV_CoreUART`, connected to the system bus at `0x80000000`, use:
+例如，要创建一个类型 `Antmicro.Renode.Peripherals.UART.MiV_CoreUART` 为 的 UART 对象，该对象在 `0x80000000` 处连接到系统总线，请使用：
 
 ```none
 uart0: UART.MiV_CoreUART @ sysbus 0x80000000
 ```
 
-Some peripherals, like the mentioned UART, need parameters to be constructed.
-The REPL format allows you to set the constructor parameters and properties of the peripheral model.
-They are placed below the declaration, with four spaces of indentation:
+一些外围设备，如前面提到的 UART，需要构建参数。REPL 格式允许您设置外围模型的构造函数参数和属性。它们位于声明下方，有四个缩进空格：
 
 ```none
 uart0: UART.MiV_CoreUART @ sysbus 0x80000000
     clockFrequency: 66000000
 ```
 
-Constructor parameters begin with a lower case letter, and properties with an upper case letter.
+构造函数参数以小写字母开头，属性以大写字母开头。
 
-## Connecting peripherals
+## 连接外围设备
 
-In the example above the `uart0` peripheral was connected to the system bus at a specific address.
-It is possible, however, to connect peripherals to other buses as well, like I2C or SPI, to a GPIO controller, etc.
+在上面的示例中， `uart0` peripheral 连接到特定地址的系统总线。但是，也可以将外设连接到其他总线，如 I2C 或 SPI，连接到 GPIO 控制器等。
 
-For example, to connect a temperature sensor to an I2C controller called `i2c0` at `0x80`, type:
+例如，要在 `0x80` 处将温度传感器连接到名为 `i2c0` 的 `I2C` 控制器，请键入：
 
 ```none
 sensor: Sensors.SI70xx @ i2c0 0x80
 ```
 
-Peripherals can also be connected via GPIOs or interrupts.
-Renode treats these signals similarly, and allows you to create a connection with the `->` operator.
+外设也可以通过 GPIO 或中断连接。Renode 以类似方式处理这些信号，并允许您使用 `->` 运算符创建连接。
 
-To connect a timer to the 31-st interrupt on the `plic` interrupt controller, run:
+要将计时器连接到 `plic` 中断控制器上的第 31 个中断，请运行：
 
 ```none
 timer: Timers.MiV_CoreTimer @ sysbus 0x1000000
     -> plic @ 31
 ```
 
-## Including files
+## 包含文件
 
-You can include an existing REPL file in your platform with the `using` keyword.
+您可以使用 `using` 关键字在平台中包含现有的 REPL 文件。
 
-The path will be looked up in each of the directories on the Monitor's internal `PATH`, which is editable with the `path` command.
-By default, the `PATH` contains the Renode installation directory, so the platform files distributed with Renode can be included like so:
+将在监视器内部 PATH 上的每个目录中查找该路径，该 `PATH` 可通过 `path` 命令进行编辑。默认情况下，`PATH` 包含 Renode 安装目录，因此可以像这样包含与 Renode 一起分发的平台文件：
 
 ```
 using "platforms/cpus/miv.repl"
 ```
 
-You can also provide an absolute path:
+您还可以提供绝对路径：
 
 ```
 using "/tmp/platform.repl"
 ```
 
-Or a path relative to the REPL file that contains the `using` statement:
+或者相对于包含 `using` 语句的 REPL 文件的路径：
 
 ```
 using "./platform.repl"
@@ -78,8 +69,7 @@ using "../other/platform.repl"
 
 :::{note}
 
-On Windows, `/` can be used as a path separator in all of these cases.
-If you want to use Windows-style `\` separators, you will need to escape them:
+在 Windows 上，`/` 在所有这些情况下都可以用作路径分隔符。如果你想使用 Windows 样式的 `\` 分隔符，你需要对它们进行转义：
 
 ```
 using "D:\\platforms\\platform1.repl"

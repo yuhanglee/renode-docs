@@ -1,18 +1,14 @@
-# Running Renode in different modes
+# 在不同模式下运行 Renode
 
+默认情况下，Renode 在 GUI 模式下运行。启动后，它会为 [Monitor](#monito) 打开一个新窗口，并为不同的分析器（例如 UART）打开其他窗口。
 
-By default Renode runs in GUI mode.
-When started, it opens a new window for [the Monitor](#monitor) and additional windows for different analyzers (e.g., UART).
+但是，也可以在其他模式下启动 Renode。下面我们介绍运行 Renode 和与 Renode 交互的替代方法。
 
-It is, however, possible to start Renode in other modes too.
-Below we present alternative ways of running and interacting with Renode.
+## Telnet 模式
 
-## Telnet mode
+Renode 可以通过网络套接字而不是窗口提供的 Monitor 界面启动。在此模式下，它仍将在本地打开其他窗口，但可以远程控制模拟。
 
-Renode can be started with the Monitor interface available over a network socket instead of a window.
-In this mode it will still open other windows locally, but the simulation can be controlled remotely.
-
-To start Renode in telnet mode, run it with the `-P` switch:
+要在 telnet 模式下启动 Renode，请使用 `-P` 开关运行它：
 
 ```
 $ renode -P 1234
@@ -21,7 +17,7 @@ $ renode -P 1234
 17:02:17.2373 [INFO] Script: hello
 ```
 
-After that you can connect to it with:
+之后，您可以通过以下方式连接到它：
 
 ```
 $ telnet 127.0.0.1 1234
@@ -34,38 +30,35 @@ Renode, version 1.12.0.33182 (0cd6e174-202108311750)
 (monitor)
 ```
 
-You can disconnect from the telnet session and the Renode instance will continue running in the background.
+您可以断开与 telnet 会话的连接，Renode 实例将继续在后台运行。
 
-In order to close Renode opened in telnet mode, you have to connect to it and issue the `quit` command.
+为了关闭以 telnet 模式打开的 Renode，您必须连接到它并发出 `quit` 命令。
 
-## Headless mode
+## 无头模式
 
-Renode can be built/run in headless mode that doesn\'t require any graphical environment (e.g., X11) to be present in the system.
-This mode is especially useful when running simulation in a CI environment.
+Renode 可以在无头模式下构建/运行，不需要系统中存在任何图形环境（例如 X11）。在 CI 环境中运行仿真时，此模式特别有用。
 
-### Building for headless use
+### 为 Headless 使用而构建
 
-To build Renode in a headless environment use the `--no-gui` switch:
+要在无头环境中构建 Renode，请使用 `--no-gui` 开关：
 
 ```sh
 $ ./build.sh --no-gui
 ```
 
-### Running in a headless environment
+### 在 Headless 环境中运行
 
-Even if you have Renode with a compiled-in GUI support (the default configuration), you can start it in headless mode with:
+即使您的 Renode 具有编译的 GUI 支持（默认配置），您也可以通过以下方式在 Headless 模式下启动它：
 
 ```sh
 $ renode --disable-gui
 ```
 
-It is similar to telnet mode as the Monitor will be available on port 1234 by default (the port number can be changed with the `-P` switch).
-The difference is that in headless mode no graphical windows will be created for analyzers - e.g., UART analyzers will output to log by default.
+它类似于 telnet 模式，因为监视器默认在端口 1234 上可用（可以使用 `-P` 开关更改端口号）。区别在于，在 Headless 模式下，不会为分析器创建图形窗口 - 例如，默认情况下，UART 分析器将输出到 log。
 
-## Console mode
+## 控制台模式
 
-It is possible to start Monitor in the same console window where Renode is started.
-In this mode the prompt will be intertwined with log messages:
+可以在启动 Renode 的同一控制台窗口中启动 Monitor。在此模式下，提示将与日志消息交织在一起：
 
 ```
 $ renode --console
@@ -78,12 +71,12 @@ Renode, version 1.12.0.33182 (0cd6e174-202108311750)
 ```
 
 :::{note}
-Console mode can be mixed together with headless mode by passing both `--console` and `--disable-gui`.
+通过传递 `--console` 和 `--disable-gui`，可以将控制台模式与无头模式混合在一起。
 :::
 
-## UART interactions in the Monitor
+## Monitor 中的 UART 交互
 
-With the `uart_connect` command it is possible to switch between the Monitor and an interactive UART session:
+使用 `uart_connect` 命令，可以在 Monitor 和交互式 UART 会话之间切换：
 
 ```
 [...]
@@ -100,5 +93,4 @@ dev      home     linuxrc  mnt      proc     run      sys      usr
 (machine-0)
 ```
 
-In this mode all input from the user is directed to UART and all output from UART is displayed in place of the Monitor prompt.
-This works in all Monitor modes (window, telnet, console).
+在此模式下，用户的所有输入都定向到 UART，并且 UART 的所有输出都显示在 Monitor 提示符的位置。这适用于所有 Monitor 模式 （window， telnet， console）。

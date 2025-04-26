@@ -1,72 +1,67 @@
-# UART integration
+# UART 集成
 
-Renode enables exposing emulated UART devices to the host machine and interacting with them using the standard workflow (tools, scripts, etc.) exactly as if they were actual hardware serial ports.
-This opens the door to designing hybrid setups where part of the system is simulated in Renode and the rest consists of physical devices or software running in the "real world".
+Renode 可以将仿真的 UART 设备公开给主机，并使用标准工作流程（工具、脚本等）与它们进行交互，就像它们是实际的硬件串行端口一样。这为设计混合设置打开了大门，其中系统的一部分在 Renode 中模拟，其余部分由在 “真实世界” 中运行的物理设备或软件组成。
 
-Renode provides two independent mechanisms for exposing virtual UART devices to the host machine:
+Renode 提供了两种独立的机制，用于将虚拟 UART 设备暴露给主机：
 
-- using a pty device (Linux/macOS only),
-- over a network socket (available on all platforms).
+- 使用 pty 设备（仅限 Linux/macOS）
+- 通过网络套接字（在所有平台上都可用）
 
-You can also redirect UART output to a file, but this is does not allow for reading user input.
+您还可以将 UART 输出重定向到文件，但这不允许读取用户输入。
 
-## UART pty terminal
+## UART pty 终端
 
 :::{note}
-This feature is available on Linux/macOS only.
+此功能仅在 Linux/macOS 上可用。
 :::
 
-UART pty terminal integration allows creating a pty device in the host filesystem that acts as a bridge between the real world and the simulation.
-Data written to/read from the pty device by the software running in the real world is automatically transferred to the virtual UART device (and vice versa).
+UART pty 终端集成允许在主机文件系统中创建一个 pty 设备，作为现实世界和模拟之间的桥梁。在现实世界中运行的软件写入 pty 设备/从 pty 设备读取的数据会自动传输到虚拟 UART 设备（反之亦然）。
 
-In order to expose a virtual UART device, create the UART pty terminal with the following command in the Monitor:
+要公开虚拟 UART 设备，请在 Monitor 中使用以下命令创建 UART pty 终端：
 
 ```none
 (monitor) emulation CreateUartPtyTerminal "term" "/tmp/uart"
 ```
 
-This will create a new file in the host filesystem (`/tmp/uart`) that can be referenced from within the simulation as `term`.
+这将在主机文件系统 （`/tmp/uart`） 中创建一个新文件，该文件可以在模拟中作为`术语`引用。
 
-Now you need to [load your platform](#loading-platforms) and connect the newly created UART pty terminal to the simulated UART device:
+现在您需要[加载您的平台](#loading-platforms)并将新创建的 UART pty 终端连接到模拟的 UART 设备：
 
 ```none
 (machine-0) connector Connect sysbus.uart0 term
 ```
 
-This assumes your UART is called `sysbus.uart0`, but you might need to adjust it to match your platform.
+这假设您的 UART 名为 `sysbus.uart0`，但您可能需要调整它以匹配您的平台。
 
-Finally, open the terminal application on your host machine (`screen`/`picocom`/`PuTTY`/etc.) and attach it to the `/tmp/uart` file.
-You can interact with it just like with the hardware.
+最后，在主机上打开终端应用程序（`screen`/`picocom`/`PuTTY`/等）并将其附加到 `/tmp/uart` 文件。您可以像与硬件一样与它交互。
 
-## Socket terminal
+## 套接字终端
 
 :::{note}
-This feature is available on all supported host platforms (Linux/macOS/Windows).
+此功能在所有支持的主机平台 （Linux/macOS/Windows） 上都可用。
 :::
 
-Socket terminal integration allows exposing a virtual UART device over a network socket and making it available for any device in the network.
-The data sent to the socket available on a selected port number by the software running in the real world (on the local host machine or over the network) is automatically transferred to the virtual UART device (and vice versa).
+套接字终端集成允许通过网络套接字公开虚拟 UART 设备，并使其可用于网络中的任何设备。在现实世界中运行的软件（在本地主机或通过网络）发送到所选端口号上可用套接字的数据会自动传输到虚拟 UART 设备（反之亦然）。
 
-In order to expose a virtual UART device, create a Socket terminal with the following command in the Monitor:
+为了公开虚拟 UART 设备，请在 Monitor 中使用以下命令创建一个 Socket 终端：
 
 ```none
 (monitor) emulation CreateServerSocketTerminal 12345 "term"
 ```
 
-This will open a tcp network port `12345` on the host machine that can be referenced from within the simulation as `term`.
+这将在主机上打开一个 tcp 网络端口 `12345`，该端口可以在模拟中作为`术语`引用。
 
-Now, connect the newly created Socket terminal to the simulated UART device:
+现在，将新创建的 Socket 端子连接到模拟的 UART 设备：
 
 ```none
 (machine-0) connector Connect sysbus.uart0 term
 ```
 
-Finally, open the terminal application on your host machine (`netcat`/`telnet`/`PuTTy`/etc.) and connect it to port 12345.
-You can interact with it just like with the hardware.
+最后，在您的主机上打开终端应用程序（`netcat`/`telnet`/`PuTTy`/等）并将其连接到端口 12345。您可以像与硬件一样与它交互。.
 
-### Emitting configuration bytes
+### 发出配置字节
 
-By default Server Socket will emit the following initial configuration bytes in order to properly configure a newly connected terminal:
+默认情况下，Server Socket 将发出以下初始配置字节，以便正确配置新连接的终端：
 
 ```
 0xff, 0xfd, 0x00, // IAC DO    BINARY
@@ -75,32 +70,30 @@ By default Server Socket will emit the following initial configuration bytes in 
 0xff, 0xfc, 0x22  // IAC WONT  LINEMODE
 ```
 
-In order to avoid generating them, pass additional `false` argument when creating the Socket terminal:
+为了避免生成它们，请在创建 Socket 终端时传递额外的 `false` 参数：
 
 ```none
 (monitor) emulation CreateServerSocketTerminal 12345 "term" false
 ```
 
-## Redirecting to a file
+## 重定向到文件
 
-Renode can redirect UART output to a file on your host.
-To enable this feature, call:
+Renode 可以将 UART 输出重定向到主机上的文件。要启用此功能，请调用：
 
 ```none
 (machine-0) uart CreateFileBackend @uart_file
 ```
 
-By default, the UART output will be cached by the host IO system.
-If you want the output to be flushed immediately after being sent, use:
+默认情况下，UART 输出将由主机 IO 系统缓存。如果您希望在发送输出后立即刷新输出，请使用：
 
 ```none
 (machine-0) uart CreateFileBackend @uart_file_flush true
 ```
 
-If you want, you can stop this output with:
+如果需要，您可以通过以下方式停止此输出：
 
 ```none
 (machine-0) uart CloseFileBackend @uart_file
 ```
 
-Keep in mind that subsequent calls to the `CreateFileBackend` method will not overwrite the previous file of the same name, but rather copy, appending a consecutive number to its name.
+请记住，对 `CreateFileBackend` 方法的后续调用不会覆盖同名的上一个文件，而是复制，将连续数字追加到其名称中。

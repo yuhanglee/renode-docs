@@ -20,8 +20,8 @@ from antmicro_sphinx_utils.defaults import (
 
 # -- General configuration -----------------------------------------------------
 
-project = u'Renode - documentation'
-basic_filename = 'renode-docs'
+project = u'Renode - 中文文档'
+basic_filename = 'renode-docs-chinese'
 authors = u'Antmicro'
 copyright = u'2010-' + str(date.today().year) + ' ' + authors
 
@@ -71,7 +71,7 @@ html_title = project
     html_theme_options,
     html_context
 ) = antmicro_html(
-    gh_slug=environ.get('GITHUB_REPOSITORY', 'renode/renode'),
+    gh_slug=environ.get('GITHUB_REPOSITORY', 'yuhanglee/renode-docs'),
     #pdf_url=f"{basic_filename}.pdf",
 )
 

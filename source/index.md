@@ -2,7 +2,7 @@
 
 
 ```{toctree}
-:caption: Introduction
+:caption: 引言
 :maxdepth: 2
 
 introduction/installing
@@ -16,7 +16,7 @@ introduction/developing-renode
 
 
 ```{toctree}
-:caption: Basic usage
+:caption: 基本用法
 :maxdepth: 2
 
 basic/machines
@@ -35,7 +35,7 @@ basic/configuring-a-risc-v-cpu
 
 
 ```{toctree}
-:caption: Debugging
+:caption: 调试
 :maxdepth: 2
 
 debugging/gdb
@@ -44,7 +44,7 @@ debugging/vscode
 
 
 ```{toctree}
-:caption: Execution tracing
+:caption: 执行跟踪
 :maxdepth: 2
 
 execution-tracing/execution-tracing
@@ -55,7 +55,7 @@ execution-tracing/guest-cache-modelling
 
 
 ```{toctree}
-:caption: Networking
+:caption: 网络
 :maxdepth: 2
 
 networking/wired
@@ -67,7 +67,7 @@ networking/machine-to-machine-connections
 
 
 ```{toctree}
-:caption: Host integration
+:caption: 主机集成
 :maxdepth: 2
 
 host-integration/uart
@@ -78,7 +78,7 @@ host-integration/sharing-files
 
 
 ```{toctree}
-:caption: Advanced topics
+:caption: 高级主题
 :maxdepth: 2
 
 advanced/co-simulating-with-an-hdl-simulator
@@ -91,7 +91,7 @@ advanced/loading-assembly-to-memory
 
 
 ```{toctree}
-:caption: Tutorials
+:caption: 教程
 :maxdepth: 2
 
 tutorials/miv-example

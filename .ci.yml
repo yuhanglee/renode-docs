@@ -2,6 +2,7 @@
 .common_only: &common_only
   only:
     - master
+    - chinese
     - merge_requests
     - schedules
     - triggers

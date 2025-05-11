@@ -122,7 +122,7 @@ Robot Framework-Renode 集成层提供关键字，允许用户以与内置关键
 
 Renode 提供了自定义 Robot 关键字来注释测试应从另一个测试提供的状态继续执行的情况：
 
-* `Provides` - 创建仿真状态的命名快照（请参阅{ref}`State saving and loading <state-saving>` ）
+* `Provides` - 创建仿真状态的命名快照（请参阅{ref}`状态保存与加载 <state-saving>` ）
 * `Requires` - 加载命名快照并从该状态恢复执行测试
 
 使用示例：

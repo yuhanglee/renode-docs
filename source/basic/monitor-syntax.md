@@ -20,7 +20,7 @@ help start
 
 要访问计算机的仿真对象（例如外围设备）可用的命令，您可以键入对象的名称，然后单击 Tab 键两次以激活 Tab 键完成。
 
-仿真对象位于层次结构中，`sysbus` 是所有外围设备的机器根。如果要访问机器的 UART 外围设备 `uart`，则需要使用 `sysbus.uart`。你可以使用 `using` 命令来设置一个默认前缀，例如`使用 sysbus` 允许你直接引用 UART：
+仿真对象位于层次结构中，`sysbus` 是所有外围设备的机器根。如果要访问机器的 UART 外围设备 `uart`，则需要使用 `sysbus.uart`。你可以使用 `using` 命令来设置一个默认前缀，例如使用 `sysbus` 允许你直接引用 UART：
 
 ```
 uart
@@ -83,7 +83,7 @@ Current load: NaN
 using sysbus
 ```
 
-## Accessing attributes of an object
+## 访问对象的属性
 
 Renode 中的对象可以根据其类型访问不同的方法、属性、字段和索引器。访问外围设备的参数需要这些方法，要成功执行此作，您需要遵循以下语法：
 
@@ -167,7 +167,7 @@ sysbus
 ```
 
 ```{note}
-你可以将 `path` 参数传递给接受`字符串`的函数，它将被转换为`字符串` 。请记住，额外的文件名自动完成仅在 `@` 符号后可用。
+你可以将 `path` 参数传递给接受`strings`的函数，它将被转换为`strings` 。请记住，额外的文件名自动完成仅在 `@` 符号后可用。
 ```
 
 ## 监控变量类型
@@ -226,7 +226,7 @@ macro newMacro
 runMacro $newMacro
 ```
 
-您可能会注意到，许多 Renode 示例脚本都定义了 `$reset` 宏。每当用户或通过模拟逻辑调用`机器 Reset` 方法时，都会使用此宏。
+您可能会注意到，许多 Renode 示例脚本都定义了 `$reset` 宏。每当用户或通过模拟逻辑调用`machine Reset` 方法时，都会使用此宏。
 
 ## 文件路径
 
@@ -249,7 +249,7 @@ include @/path/to/platform.repl
 在 Renode 中，您可以使用绝对路径或相对于当前目录的路径。
 ```
 
-### Relative paths
+### 相对路径
 
 如果要表示相对于当前执行的 Renode 脚本 （.resc） 的路径，可以使用 `$ORIGIN` 变量：
 
@@ -328,7 +328,7 @@ runMacro $reset
 :description: This script runs Zephyr Shell demo on NRF52840.
 ```
 
-接下来，我们使用 `using` 命令在引用外围设备时省略前缀。 `使用 sysbus` 的命令使您能够使用 `cpu` 而不是 `sysbus.cpu` 来引用 CPU 设备：
+接下来，我们使用 `using` 命令在引用外围设备时省略前缀。 使用 `sysbus` 的命令使您能够使用 `cpu` 而不是 `sysbus.cpu` 来引用 CPU 设备：
 
 ```none
 using sysbus

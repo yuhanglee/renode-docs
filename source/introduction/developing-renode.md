@@ -18,7 +18,7 @@ Renode 具有许多内置功能来支持嵌入式软件的调试，例如 [使�
     ./renode -d
     ```
 
-1. 通过 Mono 调试器连接到 Renode，例如 [using VS Code](#vs-code-configurations)
+1. 通过 Mono 调试器连接到 Renode，例如 [使用 VS Code](#vs-code-configurations)
 
 1. 将 GDB 附加到正在运行的 Renode 进程，以调试内核的实现（通过 GDB 在 C 语言中）。由于 Mono 使用信号进行流控制，因此 GDB 需要特定的命令。最重要的命令是：
 
@@ -33,7 +33,7 @@ Renode 具有许多内置功能来支持嵌入式软件的调试，例如 [使�
 
 Visual Studio Code 广泛的插件生态系统为使用 Renode 代码库提供了良好的开发人员体验。您可以决定使用 Microsoft 的官方 [VS Code](https://code.visualstudio.com/) 应用程序，也可以使用 OSS 二进制版本 [VSCodium](https://github.com/VSCodium/vscodium) 或 [code-server](https://github.com/coder/code-server) 之一。官方版本和 OSS 版本的主要区别在于它们使用不同的扩展库，因此某些扩展可能不适用于每个版本。
 
-在 VS Code 中启动 Renode 时，您可以使用几个现成的配置（如 [`launch.json` 文件中](https://github.com/renode/renode/blob/master/.vscode/launch.json)所定义）：
+在 VS Code 中启动 Renode 时，您可以使用几个现成的配置（如 [`launch.json` ](https://github.com/renode/renode/blob/master/.vscode/launch.json)文件中所定义）：
 
 * `Launch - Release` - 相当于从控制台运行 `./build.sh` 和 `./renode`。
 * `Launch - Debug` - 在 `Debug` 配置 （`./build.sh -d`） 中构建 Renode，并在 Mono 调试器下启动它。

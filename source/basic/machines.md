@@ -120,13 +120,13 @@ sysbus (SystemBus)
 (machine-0) sysbus.ddr Size
 ```
 
-要在外围设备上调用作，请使用相同的语法，但将 `Size` 替换为作名称，例如 `ZeroAll`：
+要在外围设备上执行操作，请使用相同的语法，但将 `Size` 替换为作名称，例如 `ZeroAll`：
 
 ```none
 (machine-0) sysbus.ddr ZeroAll
 ```
 
-要获取可用属性或作的完整列表，只需输入外围设备的名称：
+要获取可用属性或操作的完整列表，只需输入外围设备的名称：
 
 ```none
 (machine-0) sysbus.ddr

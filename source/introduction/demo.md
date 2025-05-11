@@ -1,6 +1,6 @@
 # 运行您的第一个 Demo
 
-您的 Renode 安装包含许多示例脚本，位于 [scripts/ 目录中](https://github.com/renode/renode/tree/master/scripts) （例如，如果您从 Linux 软件包安装，这将位于 `PC 上的 /opt/renode/scripts` 中）。
+您的 Renode 安装包含许多示例脚本，位于 [scripts](https://github.com/renode/renode/tree/master/scripts)  目录中，（例如，如果您从 Linux 软件包安装，这将位于 `PC 上的 /opt/renode/scripts` 中）。
 
 您可以使用 `include` 或 `start` 命令（简称 `i` 和 `s`）运行这些演示，并将脚本的路径（默认情况下相对于 Renode 安装目录和当前工作目录）作为参数。例如，运行单个节点 STM32F4 Discovery 演示，如下所示：
 

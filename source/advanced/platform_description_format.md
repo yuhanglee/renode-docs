@@ -1,24 +1,20 @@
-# Platform description format
+# 平台描述格式
 
-To address the need of easily assembling peripheral models into complete platform definitions, a YAML-like platform description format was created for Renode based on common use cases as experienced in daily work with the framework.
+为了满足将外围模型轻松组装成完整平台定义的需求，根据框架日常工作中的常见用例，为 Renode 创建了一个类似 YAML 的平台描述格式。
 
-Typically, files in this format have the `.repl` (REnode PLatform) extension.
+通常，这种格式的文件具有 `.repl` （REnode PLatform） 扩展名。
 
-The format is meant to be human-readable, concise, easy to parse, base upon, extend and modify.
+该格式旨在人类可读、简洁、易于解析、基于、扩展和修改。
 
-## Indentation
+## 缩进
 
-Within Renode's platform description format, meaningful indentation (similar to e.g. Python) is used *alongside* curly braces (`{`, `}`).
-The rules are as follows:
+在 Renode 的平台描述格式中，有意义的缩进（类似于例如 Python）与大括号 （`{`， `}`） *一起使用* 。规则如下：
 
-1. Only spaces are used for indentation and indent has to be a multiple of four spaces.
-2. Syntactically one level of indentation corresponds to one brace (opening one if we indent, and closing if dedent).
-3. The indentation inside braces is not meaningful, this also applies to new line characters.
-   They are all treated as white characters.
-   When meaningful indentation is used, we refer to it as indent mode (as opposed to non-indent mode).
-   To separate elements in non-indent mode (corresponding to lines in indent mode), a semicolon must be used.
+1. 缩进仅使用空格，并且 indent 必须是四个空格的倍数。
+2. 从语法上讲，一个缩进级别对应于一个大括号（如果我们缩进，则开始一个，如果缩进，则关闭）。
+3. 大括号内的缩进没有意义，这也适用于换行符。他们都被视为白色字符。当使用有意义的缩进时，我们将其称为缩进模式（而不是非缩进模式）。要在非缩进模式下分隔元素（对应于缩进模式下的行），必须使用分号。
 
-For example these files are equivalent:
+例如，这些文件是等效的：
 
 ``` none
 line1
@@ -34,18 +30,16 @@ line1
 line2 { line3; line4 { line5 }; line 6 }
 ```
 
-## Comments
+## 评论
 
-There are two types of comments:
+有两种类型的评论：
 
-- line comments start with `//` and continue to the end of the line;
-- multiline comments are delimited by `/*` and `*/` and can span multiple lines.
+- 行注释以行尾开始并继续;
+- 多行注释由 `/*` 和 `*/` 分隔，并且可以跨越多行。
 
-Both comments can be used in indent and non-indent mode, but there is one special rule.
-When a multiline comment spans multiple lines, it has to end at the end of the line.
-Otherwise it would be difficult to establish what indenation should be used for the rest of the line.
+这两种注释都可以在缩进和非缩进模式下使用，但有一个特殊规则。当多行注释跨越多行时，它必须在行尾结束。否则，将很难确定应该为该行的其余部分使用什么缩进。
 
-In other words this source is legal:
+换句话说，这个来源是合法的：
 
 ``` none
 line1 /* here a comment starts
@@ -54,7 +48,7 @@ and here ends*/
 line2
 ```
 
-But this one is not:
+但这个不是：
 
 ``` none
 line1 /* here a comment starts
@@ -62,11 +56,9 @@ line1 /* here a comment starts
 and here ends*/ line2
 ```
 
-## Basic structure
+## 基本结构
 
-Each platform description format consists of *entries*.
-An entry is a fundamental unit of peripheral description.
-The basic format of an entry is as follows:
+每个平台描述格式都由 *条目* 组成。条目是外围描述的基本单位。条目的基本格式如下：
 
 ``` none
 variableName: TypeName registrationInfo
@@ -76,13 +68,11 @@ variableName: TypeName registrationInfo
     attributeN
 ```
 
-All of `TypeName`, `registrationInfo` and `attributes` are optional, but at least one of them must be present.
-If an entry contains a TypeName, then it is a *creating entry* (otherwise it is an *updating entry*).
+所有 `TypeName`、`registrationInfo` 和 `attributes` 都是可选的，但必须至少存在其中一个。如果条目包含 TypeName，则它是 *创建条目* （否则它是 *更新条目* ）。
 
-Each creating entry declares a variable, there can be only one declaration for a given variable and it must be the first entry that is encountered when parsing the file, unless the variable is declared before parsing.
-For example all peripherals that are registered in the machine are also imported as variables and can have their updating entries (but not creating entries).
+每个创建条目都声明一个变量，给定变量只能有一个声明，并且它必须是解析文件时遇到的第一个条目，除非在解析之前声明了该变量。例如，在机器中注册的所有外围设备也作为变量导入，并且可以有其更新条目（但不能创建条目）。
 
-In other words this code is legal:
+换句话说，此代码是合法的：
 
 ``` none
 variable1: SomeType
@@ -92,7 +82,7 @@ variable1:
     property: otherValue
 ```
 
-But the following results in an error:
+但以下情况会导致错误：
 
 ``` none
 variable1:
@@ -102,14 +92,11 @@ variable1: SomeType
     property: otherValue
 ```
 
-The consecutive entries (for the given variable) are called updating because they can update some information provided by the former ones.
-Eventually all entries corresponding to the given variable are *merged* so that the merge result contains attributes from all entries, possibly some invalidated by some other.
+连续的条目（对于给定的变量）称为 updating ，因为它们可以更新前一个条目提供的一些信息。最终，与给定变量对应的所有条目都会 *被合并* ，以便合并结果包含来自所有条目的属性，其中一些可能被其他一些条目失效。
 
-TypeName must be provided with the full namespace the type is located in.
-However, if the namespace starts with `Antmicro.Renode.Peripherals`, then this part can be omitted.
+TypeName 必须提供类型所在的完整命名空间。但是，如果命名空间以 `Antmicro.Renode.Peripheral` 开头，则可以省略这部分。
 
-A creating entry can have an optional prefix `local`, then the variable declared in this entry is called a *local* variable.
-The prefix is only used with a creating entry, not with an updating one.
+创建条目可以具有可选前缀 `local`，则在此条目中声明的变量称为_局部_变量。前缀仅用于 creating 条目，而不用于 updating 条目。
 
 For example:
 
@@ -121,56 +108,49 @@ cpu:
     IntProp: 32
 ```
 
-If the variable is local, then we can reference it only within that file.
-This will be clearer after reading the next section, but generally if one file depends on another, both can declare same named local variable and they are completely independent, in particular they can have different types.
+如果变量是 local，那么我们只能在该文件中引用它。阅读下一节后，这会更清楚，但通常如果一个文件依赖于另一个文件，两个文件都可以声明相同的命名局部变量，并且它们是完全独立的，特别是它们可以有不同的类型。
 
-## Depending on other files
+## 依赖其他文件
 
-One description can depend on another, in which case it can use all (non-local) variables from that file.
-Note that also all non-local variables from a file we\'re depending on cannot have creating entries.
-In other words, depending on another file is like having it pasted at the top of the file with the exception of local variables.
+一个描述可以依赖于另一个描述，在这种情况下，它可以使用该文件中的所有（非局部）变量。请注意，我们所依赖的文件中的所有非局部变量都不能有 creating entries。换句话说，依赖于另一个文件就像将其粘贴到文件顶部，但局部变量除外。
 
-The `using` keyword is used to declare a dependency:
+`using` 关键字用于声明依赖项：
 
 ``` none
 using "path"
 ```
 
-The line above is called a *using entry*.
-All using entries have to come before any other entries.
-There is also a syntax that lets the user depend on a file but prepend all variables within that file with a prefix:
+上面的行称为 *using 条目* 。所有 using 条目都必须位于任何其他条目之前。还有一种语法允许用户依赖一个文件，但在该文件中的所有变量前面加上前缀：
 
 ``` none
 using "path" prefixed "prefix"
 ```
 
-Then `prefix` is applied to each variable in `path`.
+然后 `prefix` 应用于 `path` 中的每个变量。
 
-Since files mentioned in `path` can further depend on other files, this can sometimes lead to a cycle.
-This is detected by the format interpreter and an error with information about the cycle is generated.
+由于 `path` 中提到的文件可以进一步依赖于其他文件，因此这有时会导致一个循环。格式解释器会检测到此问题，并生成包含周期相关信息的错误。
 
-## Values
+## 数值
 
-A *value* is a notion widely used in the platform description format.
-There are three kinds of values:
+*值* 是平台描述格式中广泛使用的概念。有三种类型的值：
 
-- *simple values* that can be further divided into:
-  - strings (delimited by a double quote with `\"` used as an escaped double quote);
-  - multiline strings (delimited by triple quotes `'''` with `\'''` used as escaped triple quotes) (example below);
-  - boolean values (either `true` or `false`);
-  - numbers (decimal or hexadecimal with the `0x` prefix);
-  - ranges (described below)
-- reference values, which point to a variable and are given just as the name of the variable;
-- inline objects that denote an object described in the value itself and not tied to any variable (described later).
+-  *简单值* ，可进一步分为：
+  - 字符串（用双引号分隔，其中 ` \"` 用作转义的双引号）;
+  - 多行字符串（用三引号 `'''` 分隔， `其中 \'''` 用作转义的三引号）（示例如下）;
+  - 布尔值（`true` 或 `false`）;
+  - 数字（十进制或十六进制，带 `0x` 前缀）;
+  - 范围 （如下所述）
+- 引用值，指向变量，仅作为变量的名称给出;
+- 内联对象，表示值本身中描述的对象，并且不与任何变量绑定（稍后介绍）。
 
-A range represents an interval and can be supplied in two forms:
+范围表示一个区间，可以以两种形式提供：
 
 - `<begin, end>` or
 - `<begin, +size>` where `begin`, `end` and `size` are decimal or hexadecimal numbers.
 
-Examples: `<0, 100>`, `<0x10000, +0x200>`.
+示例: `<0, 100>`, `<0x10000, +0x200>`.
 
-Example of a multline string with an escaped delimiter:
+带有转义分隔符的多行字符串示例：
 
 ``` none
 name: '''this is \'''
@@ -179,30 +159,23 @@ multiline
 name'''
 ```
 
-## Registration info
+## 注册信息
 
-Registration info tells in which register a given peripheral should be registered and how.
-A peripheral can be registered in one or more registers.
-For a single registration the format of registration info is as follows:
+Registration info 告诉给定外设应该在哪个 register 中注册以及如何注册。外设可以在一个或多个 registers 中注册。对于单个注册，注册信息的格式如下：
 
 ``` none
 @ register registrationPoint as "alias"
 ```
 
-where `registrationPoint` is a value and is optional.
-The `as "alias"` part is called an *alias* and is also optional.
-Using `registrationPoint`, the registration point is created or directly used (if the value specified is a registration point):
-If the registration point is not given, then either a `NullRegistrationPoint` is used or (if `NullRegistrationPoint` is not accepted) a registration point with no constructor parameters or all parameters optional.
+其中 `registrationPoint` 是一个值，并且是可选的。`as “alias”` 部分称为_别名，也是可选的。使用 `registrationPoint` 时，将创建或直接使用注册点（如果指定的值是注册点）：如果未提供注册点，则使用 `NullRegistrationPoint` 或（如果不接受 `NullRegistrationPoint`）没有构造函数参数或所有参数都可选的注册点。
 
-If the registration point is a simple value, then a registration point is used with a constructor taking one parameter to which this simple value can be converted and possibly other optional parameters.
-Note that any ambiguity in the two cases mentioned above will lead to an error.
+如果注册点是简单值，则注册点与构造函数一起使用，该构造函数采用一个参数，此简单值可以转换为该参数，并且可能还有其他可选参数。请注意，上述两种情况中的任何歧义都会导致错误。
 
-If the registration point is a reference value or an inline object then they are directly used as a registration point.
+如果注册点是参考值或内联对象，则它们将直接用作注册点。
 
-During registration, the registered peripheral is normally given the same name as the name of the variable.
-The user can, however, override this name with a different one using the mentioned alias.
+在注册期间，注册的外围设备通常被赋予与变量名称相同的名称。但是，用户可以使用上述别名用其他名称覆盖此名称。
 
-Multiple registrations are also supported; this has the following form:
+还支持多个注册;这具有以下形式：
 
 ``` none
 @ {
@@ -213,98 +186,82 @@ Multiple registrations are also supported; this has the following form:
 } as "alias"
 ```
 
-The meaning and optionality of the elements is the same as it was in the previous case with the only difference that the peripheral is registered multiple times, possibly in different registers.
-Note that - as was mentioned at the beginning of this document - the indentation within braces does not matter.
+元素的含义和可选性与前一种情况相同，唯一的区别是 peripheral 被多次注册，可能在不同的 registers 中。请注意，正如本文档开头所述 - 大括号内的缩进无关紧要。
 
-Registration info can be given in any entry (creating or updating), also in more than one entry.
-In such case only the registration from the newest entry takes place.
-Registration can also be cancelled, i.e. overridden without providing new registration info.
-This is done using `@ none` notation, for example:
+注册信息可以在任何条目（创建或更新）中提供，也可以在多个条目中提供。在这种情况下，仅进行最新条目的注册。也可以取消注册，即在不提供新注册信息的情况下被覆盖。这是使用 `@ none` 表示法完成的，例如：
 
 ``` none
 variable: @none
 ```
 
-## Attributes
+## 属性
 
-There are three kinds of attributes:
+有三种属性：
 
--   constructor or property attributes;
--   interrupt attributes;
--   init attributes.
+-   构造函数或属性属性;
+-   中断属性;
+-   init 属性。
 
-### Constructor or property attributes
+### 构造函数或属性
 
-A constructor or property attribute has the following form:
+构造函数或属性具有以下形式：
 
 ``` none
 name: value
 ```
 
-`name` is the name of the property (if the initial letter is uppercase) or constructor parameter (otherwise) and `value` is a value.
-When used with a property, if the attribute\'s value is convertible to this property type, then such converted value will be set (otherwise an error is produced).
+`name` 是属性（如果首字母为大写）或构造函数参数（否则）的名称，`value` 是一个值。当与属性一起使用时，如果属性的值可转换为此属性类型，则将设置此类转换的值（否则会产生错误）。
 
-Note, however, that another entry may update the property so that only the final (i.e. the last containing an attribute setting this property) entry is effective.
+但是请注意，另一个条目可能会更新属性，以便只有最后一个（即最后一个包含设置此属性的属性）条目有效。
 
-The `none` keyword can also be used instead of a value.
-Having it there means that the property is not set using any value and its value *before applying the description* is kept.
-It can be useful when some entry sets some value and we want to update this entry but not set any value.
+也可以使用 `none` 关键字代替值。拥有它意味着该属性不是使用任何值设置的，并且在_应用描述之前_保留其值。当某些条目设置了一些值，而我们想更新这个条目但不设置任何值时，它可能很有用。
 
-The `empty` keyword can be used to set the default value of property or constructor parameter:
+`empty` 关键字可用于设置 property 或 constructor 参数的默认值：
 
-- numerical values are set to `0`;
-- string values are set to `null`;
-- enum values are set to value corresponding to `index 0` in this enum;
-- reference types are set to `null`;
+- 数值设置为 `0`;
+- 字符串值设置为 `null`;
+- 枚举值设置为此枚举中 `index 0` 对应的值;
+- 引用类型设置为 `null`;
 
-Constructor attributes are merged in a similar way, i.e. attributes from all entries belonging to the given variable are analyzed and for each name we take the last one value with this name.
-The constructor of the peripheral is chosen based on the set of merged attributes.
-For each possible constructor of the type specified in the creating entry we check whether:
+构造函数属性以类似的方式合并，即分析属于给定变量的所有条目的属性，对于每个名称，我们采用具有该名称的最后一个值。peripheral 的构造函数是根据合并属性集选择的。对于创建条目中指定的类型的每个可能的构造函数，我们检查是否：
 
--   each parameter of the constructor has a default value or corresponding attribute, i.e. attribute having same name as the name of the parameter;
--   the corresponding attribute has value convertible (for simple types) or assignable (otherwise) to the parameter type;
--   all attributes have been used.
+-   构造函数的每个参数都有一个默认值或相应的 attribute，即 attribute 与参数名称同名;
+-   相应的属性具有值 convertible （对于简单类型） 或 assignable （否则） 到 parameter type;
+-   所有属性都已使用。
 
-If all the conditions are satisfied then the analyzed constructor is marked as usable.
-If only one constructor is usable, then the object is created using this constructor.
-If there is no such constructor or there are more than one, an error is produced.
+如果满足所有条件，则分析的构造函数将标记为可用。如果只有一个构造函数可用，则使用此构造函数创建对象。如果没有这样的构造函数或有多个构造函数，则会产生错误。
 
-Because it is much easier to debug constructor selection problems if all the data are in one place (i.e. name of the type and constructor attributes), a warning is issued whenever a non creating entry contains constructor parameters (effectively updating a creating one).
+因为如果所有数据都在一个地方（即类型和构造函数属性的名称），调试构造函数选择问题要容易得多，所以每当非创建条目包含构造函数参数时，都会发出警告（有效地更新创建条目）。
 
-Note that it is only possible to provide constructor attributes for an entry whose variable is going to be created, so it is not possible to provide any on variables represeting peripherals existing before a given description is processed.
+请注意，只能为要创建其变量的条目提供构造函数属性，因此在处理给定描述之前，无法提供任何 on variables reresets existing peripherals。
 
-### Interrupt attributes
+### 中断属性
 
-As the name suggests, interrupt attributes are used to specify which interrupts of the variable in which the attribute is defined are connected and where.
-The simplest format of such attribute is as follows:
+顾名思义，中断属性用于指定定义该属性的变量的哪些中断连接以及连接位置。此类属性的最简单格式如下：
 
 ``` none
 -> destination@number
 ```
 
-where `destination` is a variable implementing the `IGPIOReceiver` interface and `number` is the destination interrupt number.
-Note that there is nothing specified on the left side - this is only possible if there is a single property of type `GPIO`, or there are multiple properties, but one of them is marked with a `DefaultInterrupt` attribute. This is the one that gets connected.
+其中 `destination` 是实现 `IGPIOReceiver` 接口的变量，`number` 是目标中断号。请注意，左侧没有指定任何内容 - 仅当存在 `GPIO` 类型的单个属性，或者有多个属性，但其中一个属性标有 `DefaultInterrupt` 属性时，才有可能这样做。这是连接的。
 
-Whenever the user wants to specify which property should be connected, a more general form can be used:
+每当用户想要指定应该连接哪个属性时，可以使用更通用的形式：
 
 ``` none
 propertyName -> destination@number
 ```
 
-where `propertyName` is the name of the property (of the `GPIO` type) that should be connected.
-Also, if the type implements `INumberedGPIOOutput`, a number can be used instead of the property name.
+其中 `propertyName` 是应连接的属性（`GPIO` 类型）的名称。此外，如果类型实现 `INumberedGPIOOutput`，则可以使用数字代替属性名称。
 
-If more than one interrupt is to be connected to the same destination peripheral, the following form of the attribute can be used:
+如果要将多个中断连接到同一目标外设，则可以使用以下形式的属性：
 
 ``` none
 [irq1, irq2, ..., irqN] -> destination@[irqDest1, irqDest2, ..., irqDestN]
 ```
 
-Where `irq1` connects to `irqDest1` etc.
-Again, `irq` s can be names or numbers (if `INumberedGPIOOutput` is implemented) and `irqDest` s have to be numbers.
-Naturally, the arity of sources and destinations has to match.
+其中 `irq1` 连接到 `irqDest1` 等。同样， `irq` s 可以是名称或数字 （如果实现了 `INumberedGPIOOutput`），而 `irqDest` s 必须是数字。当然，源和目标的 arity 必须匹配。
 
-There is also a possibility of connecting a single source to multiple destinations with the `|` sign, which can be used with every interrupt attribute format:
+还可以使用 `|` 符号将单个源连接到多个目标，该符号可用于每个中断属性格式：
 
 ``` none
 -> destination@number | another_destination@number
@@ -312,34 +269,29 @@ propertyName -> destination@number | another_destination@number
 [irq1, irq2, ..., irqN] -> destination@[irqDest1, irqDest2, ..., irqDestN] | another_destination@[irqDest1, irqDest2, ..., irqDestN]
 ```
 
-Note that every attribute separated by the `|` sign has to be of the same arity as the source.
+请注意，由 `|` 符号分隔的每个属性都必须与源具有相同的 arity。
 
-There is also a notation used in case of local interrupts:
+在本地中断的情况下，还有一个表示法：
 
 ``` none
 source -> destination#index@interrupt
 ```
 
-`destination` has to implement `ILocalGPIOReceiver` and `index` is the index of the local GPIO receiver.
-This notation can also be used with multiple interupts:
+`destination` 必须实现 `ILocalGPIOReceiver，index` 是本地 GPIO 接收器的索引。此表示法也可以与多个中断一起使用：
 
 ``` none
 [irq1, irq2, ..., irqN] -> destination#index@[irqDest1, irqDest2, ..., irqDestN]
 ```
 
-Just as in the case of properties, interrupt attributes can update older ones.
-This is done basing on the source interrupt, i.e. if two attributes from different entries use the same source interrupt, only the one from the latter is used.
-Again, as in properties, the user may want to cancel the irq connection without specifying a different one.
-The keyword `none` can be used for this purpose:
+就像 properties 一样，interrupt attribute 可以更新旧的 attribute。这是根据源中断完成的，即如果来自不同条目的两个属性使用相同的源中断，则仅使用来自后者的属性。同样，就像在 properties 中一样，用户可能想要取消 irq 连接而不指定不同的连接。关键字 `none` 可用于此目的：
 
 ``` none
 source -> none
 ```
 
-### Init attributes
+### 初始化属性
 
-Init attributes are used to execute monitor commands on the variable.
-They have one of the following forms:
+Init 属性用于对变量执行 monitor 命令。它们具有以下形式之一：
 
 ``` none
 init:
@@ -357,14 +309,11 @@ init add:
     monitorStatementN
 ```
 
-The difference between them is that during merge phase the first one overrides the given variable\'s previous init attribute (if there is one) and the second one concanates itself to that previous one.
-The final entry is eventually executed: every statement is prepended with the name of the peripheral the variable is tied to and then directly parsed by the Monitor.
-Note that this means that the init section is only legal for variables that are registered.
+它们之间的区别在于，在 merge 阶段，第一个会覆盖给定变量的上一个 init 属性（如果有的话），而第二个会自行连接到前一个。最终执行最后一个条目：每个语句前面都加上变量绑定到的外围设备的名称，然后由 Monitor 直接解析。请注意，这意味着 init 部分仅对已注册的变量合法。
 
-## Inline objects
+## 内联对象
 
-Inline objects are values similar to reference values, but instead of creating a separate variable and then referencing it, it is defined directly in the place of reference.
-The form is as follows:
+内联对象是类似于引用值的值，但不是创建一个单独的变量然后引用它，而是直接在引用位置定义它。表格如下：
 
 ``` none
 new Type
@@ -374,8 +323,7 @@ new Type
     attributeN
 ```
 
-The effect is the same as creating an entry of this type and with those attributes, but it cannot be updated and is only available in the place of reference.
-So, for example, these codes lead to the same effect:
+效果与创建此类型并使用这些属性的条目相同，但无法更新，并且仅在引用位置可用。因此，例如，这些代码会导致相同的效果：
 
 ``` none
 variable: SomeType

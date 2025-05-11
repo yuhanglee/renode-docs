@@ -1,23 +1,21 @@
-# Peripheral modeling guide
+# 外设建模指南
 
-Renode allows the user to "model" HW peripherals in several ways:
+Renode 允许用户以多种方式 “建模” 硬件外围设备：
 
-* {rsrc}`automatic tags from the SVD file </platforms/cpus/nrf52840.repl#L25>` used mainly for logging purposes,
-* {rsrc}`manual tags with return value </platforms/cpus/vybrid.repl#L99>` used for logging and trivial flow control,
-* {rsrc}`Python peripherals </platforms/cpus/tegra3.repl#L131-L134>` used for implementing very simple logic,
-* C# models, used to describe advanced peripheral logic and interconnect - described in details below.
+* {rsrc}`SVD 文件中的 automatic 标记 </platforms/cpus/nrf52840.repl#L25>` ，主要用于日志记录目的，
+* {rsrc}`带有返回值的 manual 标签 </platforms/cpus/vybrid.repl#L99>`，用于日志记录和简单的流控制，
+* 用于实现非常简单[的逻辑的 ](https://github.com/renode/renode/blob/c16c7bceca07734f6f49b4e107d299aa04b8857c//platforms/cpus/tegra3.repl#L131-L134) ，
+* 用于实现非常简单 {rsrc}`Python 外围设备 </platforms/cpus/tegra3.repl#L131-L134>` 
+* C# 模型，用于描述高级外设逻辑和互连 - 详见下文。
 
-## How does access to the system bus work?
+## 如何访问系统总线？
 
-`read`/`write` operations executed by the CPU (usually in the C implementation in the `tlib` submodule) are either directed to the internal memory or passed to the system bus and handled by the framework at the C# level.
+CPU 执行的`读` / `写`作（通常在 `tlib` 子模块的 C 实现中）要么定向到内部内存，要么传递到系统总线并由 C# 级别的框架处理。
 
-Access to the memory modeled as {risrc}`MappedMemory </src/Emulator/Main/Peripherals/Memory/MappedMemory.cs>` is handled entirely at the C level, all other operations are passed from C to C# via
-{risrc}`TranslationCPU.Read{Byte,Word,DoubleWord}FromBus </src/Emulator/Peripherals/Peripherals/CPU/TranslationCPU.cs#L578-L615>`/
-{risrc}`TranslationCPU.Write{Byte,Word,DoubleWord}ToBus </src/Emulator/Peripherals/Peripherals/CPU/TranslationCPU.cs#L617-L654>` functions.
+对建模为 {risrc}`MappedMemory </src/Emulator/Main/Peripherals/Memory/MappedMemory.cs>`  的内存的访问完全在 C 级别处理，所有其他作都通过 {risrc}`TranslationCPU.Read{Byte,Word,DoubleWord}FromBus </src/Emulator/Peripherals/Peripherals/CPU/TranslationCPU.cs#L578-L615>` /  
+{risrc}`TranslationCPU.Write{Byte,Word,DoubleWord}ToBus </src/Emulator/Peripherals/Peripherals/CPU/TranslationCPU.cs#L617-L654>` 函数。
 
-NOTE: It is possible to change {risrc}`MappedMemory </src/Emulator/Main/Peripherals/Memory/MappedMemory.cs>` type to
-{risrc}`ArrayMemory </src/Emulator/Peripherals/Peripherals/Memory/ArrayMemory.cs>` in order to handle all memory operations at the C# level.
-Keep in mind this might cause a significant drop in performance. Also, executing code from {risrc}`ArrayMemory </src/Emulator/Peripherals/Peripherals/Memory/ArrayMemory.cs>` will not be possible.
+注意：可以将  {risrc}`MappedMemory </src/Emulator/Main/Peripherals/Memory/MappedMemory.cs>`  类型更改为{risrc}`ArrayMemory </src/Emulator/Peripherals/Peripherals/Memory/ArrayMemory.cs>`  来处理 C# 级别的所有内存作。请记住，这可能会导致性能显著下降。此外，无法从 {risrc}`ArrayMemory </src/Emulator/Peripherals/Peripherals/Memory/ArrayMemory.cs>`  执行代码。
 
 
     ┌──────────────┐  C to C   ┌─────────────┐
@@ -36,67 +34,61 @@ Keep in mind this might cause a significant drop in performance. Also, executing
                                │ ArrayMemory │
                                └─────────────┘
 
-## What if there is no peripheral mapped at given offset?
+## 如果在给定偏移量处没有映射外设怎么办？
 
-In the case of write, the operation will be ignored and a warning message will be generated in the log.
+在写入的情况下，该作将被忽略，并在日志中生成一条警告消息。
 
-In the case of read, the default value of 0 will be returned and a warning message will be generated in the log.
+在 read 的情况下，将返回默认值 0，并在日志中生成一条警告消息。
 
-## What happens when the peripheral does not implement the given access width?
+## 当外设没有实现给定的访问宽度时会发生什么情况？
 
-By default this situation is treated as if there was no peripheral mapped at a given offset.
+默认情况下，这种情况被视为在给定偏移处没有 peripheral 映射。
 
-It is, however, possible to enable automatic translation of access type at the peripheral level using the {risrc}`AllowedTranslation </src/Emulator/Main/Peripherals/Bus/AllowedTranslationsAttribute.cs>` attribute - see an {risrc}`example of usage </src/Emulator/Peripherals/Peripherals/Timers/LiteX_Timer.cs#L18>`.
+但是，可以使用 {risrc}`AllowedTranslation </src/Emulator/Main/Peripherals/Bus/AllowedTranslationsAttribute.cs>`  属性在外围级别启用访问类型的自动转换 - 请参阅 {risrc}`示例 </src/Emulator/Peripherals/Peripherals/Timers/LiteX_Timer.cs#L18>`. 。
+It is, however, possible to enable automatic translation of access type at the peripheral level using the  attribute - see an 
 
-Note that automatic translation might generate more accesses on the bus, e.g., 4 byte reads per one double word read or 1 double word read and one double word write per one byte write.
-This might have unintended side effects for some registers, e.g., automatically incrementing FIFO data register, issuing the "read-to-clear" behavior or others, depending on the registers' semantics.
-It is up the developer to verify if the automatic translation is safe in the context of a given peripheral model.
+请注意，自动转换可能会在总线上产生更多访问，例如，每 1 次双字读取 4 字节读取，或者每 1 字节写入 1 次双字读取和 1 次双字写入。这可能会对某些 registers 产生意想不到的副作用，例如，自动递增 FIFO data register，发出 “read-to-clear” 行为或其他行为，具体取决于 registers 的语义。开发人员需要验证自动转换在给定 peripheral model 的上下文中是否安全。
 
-## Writing a peripheral model in C#
+## 用 C# 编写外设模型
 
-A C# class is considered a peripheral model if it implements the {risrc}`IPeripheral </src/Emulator/Main/Peripherals/IPeripheral.cs>` interface.
+如果 C# 类实现 {risrc}`IPeripheral </src/Emulator/Main/Peripherals/IPeripheral.cs>` 接口，则将其视为外围模型。
 
-In order for the peripheral to be attachable to the system bus, it must implement at least one (but can implement a few) of:
+为了使外设可连接到系统总线，它必须至少实现一项（但可以实现一些）：
 {risrc}`IBytePeripheral </src/Emulator/Main/Peripherals/Bus/IBytePeripheral.cs>`,
 {risrc}`IWordPeripheral </src/Emulator/Main/Peripherals/Bus/IWordPeripheral.cs>`,
-{risrc}`IDoubleWordPeripheral </src/Emulator/Main/Peripherals/Bus/IDoubleWordPeripheral.cs>` interfaces, enabling 8, 16 and 32-bit accesses respectively.
+{risrc}`IDoubleWordPeripheral </src/Emulator/Main/Peripherals/Bus/IDoubleWordPeripheral.cs>` 接口，分别支持 8 位、16 位和 32 位访问。
 
-Double word bus peripherals must implement at least three methods:
+双字总线外设必须至少实现三种方法：
 
-* for reading (e.g., {risrc}`ReadDoubleWord </src/Emulator/Main/Peripherals/Bus/IDoubleWordPeripheral.cs#L13>` - called by the system bus in order to read a value from the peripheral,
-* for writing (e.g., {risrc}`WriteDoubleWord </src/Emulator/Main/Peripherals/Bus/IDoubleWordPeripheral.cs#L14>` - called by the system bus in order to write a value to the peripheral,
-* for resetting ({risrc}`Reset </src/Emulator/Main/Peripherals/IPeripheral.cs#L19>`) - called by the framework to restore the state of the peripheral to the initial state.
+* 用于读取（例如，{risrc}`ReadDoubleWord </src/Emulator/Main/Peripherals/Bus/IDoubleWordPeripheral.cs#L13>`  - 由系统总线调用，以便从外设读取值）
+* 用于写入（例如，{risrc}`WriteDoubleWord </src/Emulator/Main/Peripherals/Bus/IDoubleWordPeripheral.cs#L14>` - 由系统总线调用，以便将值写入外设）
+* 用于重置 （{risrc}`Reset </src/Emulator/Main/Peripherals/IPeripheral.cs#L19>`） - 由框架调用，以将外围设备的状态恢复到初始状态。
 
-Although it's technically possible to implement `read`/`write` method in any way, the preferred one is to use the Register Framework ({risrc}`the source code </src/Emulator/Main/Core/Structure/Registers>`).
-For an example of usage, see {risrc}`the LiteX UART </src/Emulator/Peripherals/Peripherals/UART/LiteX_UART.cs#L20-L52>`.
+尽管从技术上讲可以以任何方式实现`读` / `写`方法，但首选方法是使用 Register Framework（{risrc}`the source code </src/Emulator/Main/Core/Structure/Registers>` ）。有关使用示例，请参阅 {risrc}`the LiteX UART </src/Emulator/Peripherals/Peripherals/UART/LiteX_UART.cs#L20-L52>` 。
 
-You can even use a base class (`Basic{Byte,Word,DoubleWord}Peripheral`) to simplify the code - see an {risrc}`example </src/Emulator/Peripherals/Peripherals/Timers/LiteX_CPUTimer.cs>`.
 
-The following section explains how to design a peripheral using the Register Framework.
+您甚至可以使用基类 （） `Basic{Byte,Word,DoubleWord}Peripheral` 来简化代码 - 请参阅 {risrc}`example </src/Emulator/Peripherals/Peripherals/Timers/LiteX_CPUTimer.cs>` 。
 
-## Register modeling guidelines
+以下部分介绍如何使用 Register Framework 设计外设。
 
-Create a private enum, preferably named `Registers`, that lists **all** registers supported by the peripheral.
-Conforming to the enum naming convention (or marking it with the {risrc}`RegistersDescription </src/Emulator/Main/Peripherals/Bus/Wrappers/RegisterMapper.cs#L71>` interface) allows the system bus to generate better log messages by including register name in logs generated by `sysbus LogPeripheralAccess`.
+## 注册建模指南
 
-Use human-readable, PascalCase encoded names (i.e., `InterruptEnable` instead of `IEN`) even if they are referred to differently in the documentation.
-As values of the enum fields, use the offset from the beginning of the peripheral's memory space (i.e., offsets relative to the beginning of the peripheral, **not** absolute addresses).
-Keep in mind that a platform can have multiple peripherals of a given type.
-Please be reasonable here - there are sometimes peripherals with too many registers or registers forming {risrc}`a repeatable pattern </src/Emulator/Cores/RiscV/PlatformLevelInterruptController.cs#L446-L469>` - in such case a creative approach is encouraged.
+创建一个私有枚举，最好命名为 `Registers`，列出 peripheral 支持**的所有** registers。符合枚举命名约定（或使用  {risrc}`RegistersDescription </src/Emulator/Main/Peripherals/Bus/Wrappers/RegisterMapper.cs#L71>` 接口标记它）允许系统总线通过在 `sysbus LogPeripheralAccess` 生成的日志中包含寄存器名称来生成更好的日志消息。
 
-Do not **implement** all registers - only those that are actually used by the software and can be therefore tested.
+使用人类可读的 PascalCase 编码名称（即 `InterruptEnable` 而不是 `IEN`），即使它们在文档中的引用不同。作为 enum 字段的值，使用从 peripheral 内存空间开头的偏移量（即相对于 peripheral 开头的偏移量， **而不是**绝对地址）。请记住，一个平台可以具有给定类型的多个外围设备。请在这里保持合理 - 有时会有外设具有太多的寄存器或形成  {risrc}`可重复的模式 </src/Emulator/Cores/RiscV/PlatformLevelInterruptController.cs#L446-L469>`  - 在这种情况下，鼓励采用创造性的方法。
 
-For each register **list** all fields but **implement** only the necessary ones.
-Fields that are not implemented should be marked as tags, reserved or ignored - this will help generating better access logs.
+不要实现所有 registers - 只**实现**那些软件实际使用的 registers ，因此可以进行测试。
 
-There are different type of fields available in Registers Framework:
+对于每个寄存器 **，列出**所有字段，但仅**实现**必要的字段。未实现的字段应标记为 tags、reserved 或 ignored - 这将有助于生成更好的访问日志。
 
-* flags - single-bit fields ({risrc}`example </src/Emulator/Peripherals/Peripherals/Timers/LiteX_Timer.cs#L124>`),
-* enum fields - single-or-multiple bit fields where bit patterns encode some non-numeric value ({risrc}`example </src/Emulator/Peripherals/Peripherals/SD/LiteSDCard.cs#L176>`),
-* value fields - single-or-multiple bit fields encoding a numeric value ({risrc}`example </src/Emulator/Peripherals/Peripherals/SD/LiteSDCard.cs#L171>`).
+Registers Framework 中有不同类型的字段可用：
 
-For each field you can select an access mode (Read&Write by default) that defines which operations are allowed and how they are handled by the framework.
-Possible basic values (that can be combined together with a bitwise `| OR` operator) are:
+
+* flags - 单位字段（{risrc}`示例 </src/Emulator/Peripherals/Peripherals/Timers/LiteX_Timer.cs#L124>`），
+* enum fields - 单个或多个位字段，其中的位模式对一些非数值进行编码（{risrc}`示例 </src/Emulator/Peripherals/Peripherals/SD/LiteSDCard.cs#L176>`），
+* 值字段 - 对数值进行编码的单个或多个位字段（ ({risrc}`示例 </src/Emulator/Peripherals/Peripherals/SD/LiteSDCard.cs#L171>`）。
+
+对于每个字段，您可以选择一种访问模式（默认为 Read&Write），该模式定义允许哪些作以及框架如何处理这些作。可能的基本值（可以与按位 `| 或`运算符）是：
 
 * `Read`,
 * `Write`,
@@ -106,43 +98,38 @@ Possible basic values (that can be combined together with a bitwise `| OR` opera
 * `WriteZeroToClear` - writing `0` clears the bit, writing `1` has no effect [this is most likely usable for fields flag only],
 * `ReadToClear` - the value is set to 0 after read.
 
-Writing a non-zero value to a read-only field will be ignored and generate a warning in the log.
-Reading from the write-only field will return the default value of 0 (but will not generate a warning in the log, as it's impossible to infer which fields are read).
+将非零值写入只读字段将被忽略，并在日志中生成警告。从只写字段读取将返回默认值 0（但不会在日志中生成警告，因为无法推断读取了哪些字段）。
 
-By default each register provides an automatic backing field. It means that the software will read the previously written value (assuming that fields are writable and readable).
-It is possible to access the backing field and modify its value from the code. In order to do that use an `out` parameter - see {risrc}`an example </src/Emulator/Peripherals/Peripherals/UART/LiteX_UART.cs#L42>`.
+默认情况下，每个 register 都提供一个 automatic backing field。这意味着软件将读取先前写入的值（假设字段是可写和可读的）。可以访问 backing field 并从代码中修改其值。为此，请使用 `out` 参数 - 请参阅 {risrc}`示例 </src/Emulator/Peripherals/Peripherals/UART/LiteX_UART.cs#L42>`。
 
-There are helper methods for generating groups of registers - see the {risrc}`DefineMany </src/Emulator/Peripherals/Peripherals/Timers/LiteX_Timer.cs#L59-L67>` usage example.
+有用于生成 registers 组的辅助方法 - 请参阅 {risrc}`DefineMany </src/Emulator/Peripherals/Peripherals/Timers/LiteX_Timer.cs#L59-L67>` 用法示例。
 
-It is also possible to attach callbacks for situations when the field is:
+
+
+还可以为字段为以下情况附加回调：
 
 * written (with any value) ({risrc}`example </src/Emulator/Peripherals/Peripherals/UART/LiteX_UART.cs#L23>`),
 * changed (written with a value different than the current one) ({risrc}`example </src/Emulator/Cores/X86/LAPIC.cs#L163>`),
 * read (the value is taken from the backing field),
 * read - value provider (the value is generated by the callback itself) ({risrc}`example </src/Emulator/Peripherals/Peripherals/UART/LiteX_UART.cs#L24>`). 
 
-There are also callbacks for the whole register - {risrc}`WriteCallback </src/Emulator/Peripherals/Peripherals/I2C/OpenCoresI2C.cs#L63>` and {risrc}`ReadCallback </src/Emulator/Peripherals/Peripherals/Timers/EFR32_RTCC.cs#L66>`. They are useful when the value of multiple fields is necessary for the callback logic.
+还有整个 register 的回调 - {risrc}`WriteCallback </src/Emulator/Peripherals/Peripherals/I2C/OpenCoresI2C.cs#L63>` 和{risrc}`ReadCallback </src/Emulator/Peripherals/Peripherals/Timers/EFR32_RTCC.cs#L66>`。当回调逻辑需要多个字段的值时，它们非常有用。
 
-## Bus peripheral size
+## 总线外设大小
 
-In most cases the size of the peripheral on the bus is well defined and can be included in the model.
-In order to do that, the class must implement the {risrc}`IKnownSize </src/Emulator/Main/Peripherals/IKnownSize.cs>` interface.
-The size encoded in the `Size` property is expressed in bytes.
+在大多数情况下， bus 上 peripheral 的大小是明确定义的，并且可以包含在模型中。为此，该类必须实现 {risrc}`IKnownSize </src/Emulator/Main/Peripherals/IKnownSize.cs>` 接口。在 `Size` 属性中编码的大小以字节表示。
 
-Note: Peripherals **not** implementing the `IKnownSize` interface can be also used in Renode, but it is required to provide the size each time {rsrc}`the device is registered </platforms/cpus/stm32f746.repl#L13>` (in the repl file).
+注意： **未**实现 `IKnownSize` 接口的外围设备也可以在 Renode 中使用，但每次 {rsrc}`注册设备 </platforms/cpus/stm32f746.repl#L13>`时都需要提供大小（在 repl 文件中）。
 
-## Testing guidelines
+## 测试指南
 
-For a peripheral to be pushed to Renode upstream repository, it is required that a test is provided, executing at least one binary.
-The preferred way of testing peripherals is to use standard tests/samples if available, e.g. Zephyr samples, driver tests etc. or provide a custom specific binary.
-All testing binaries should be buildable from sources.
+对于要推送到 Renode 上游存储库的外围设备，需要提供测试，至少执行一个二进制文件。测试外设的首选方法是使用标准测试/样本（如果可用），例如 Zephyr 样本、驱动程序测试等，或提供自定义的特定二进制文件。所有测试二进制文件都应该可以从源构建。
 
-The test case should be described in Robot Framework.
-See {rsrc}`examples </tests/platforms>` of simple tests.
+测试用例应在 Robot Framework 中描述。请参阅简单测试 {rsrc}`示例 </tests/platforms>` 
 
-## Example peripherals
+## 外围设备示例
 
-Here is a list of various Renode peripheral models that can be used as an inspiration:
+以下是可用作灵感的各种 Renode 外设模型的列表：
 
 * {risrc}`UART </src/Emulator/Peripherals/Peripherals/UART/LiteX_UART.cs>`
 * {risrc}`Timer </src/Emulator/Peripherals/Peripherals/Timers/LiteX_Timer.cs>`

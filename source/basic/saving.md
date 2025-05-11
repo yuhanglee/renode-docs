@@ -44,7 +44,7 @@ $ renode statefile.save
 
 ## 测试中的状态保存
 
-It's possible to use the state在定义复杂的 Robot 测试时，可以使用状态保存和加载机制。有关详细信息，请参阅 {ref}`Test cases dependencies <robot-dependencies>`  部分。 
+在定义复杂的 Robot 测试时，可以使用状态保存和加载机制。有关详细信息，请参阅  {ref}`测试用例依赖项 <robot-dependencies>` 部分。
 
 ## 加载 gzip 压缩的保存文件
 

@@ -2,7 +2,7 @@
 
 Renode 使用基于文本的格式来描述平台。平台描述文件通常具有 `.repl` 扩展名，但这不是必需的。
 
-格式及其语法的广泛描述可在 [platform-description-format](../advanced/platform_description_format.md) 部分找到。下面我们介绍基本用法和最常见的场景。
+格式及其语法的广泛描述可在 [平台描述格式](../advanced/platform_description_format.md) 部分找到。下面我们介绍基本用法和最常见的场景。
 
 ## 定义外围设备
 

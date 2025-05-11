@@ -1,24 +1,22 @@
-# Loading assembly to memory
+# 将 assembly 加载到内存中
 
-Renode allows the user to load assembly code in several ways:
+Renode 允许用户以多种方式加载汇编代码：
 
-* [LLVMAssembler](https://github.com/renode/renode/blob/791eec59cc66650893c0ff5dd3dc2909b7229bd5/tests/unit-tests/arm-ge-flag.robot#L25) used mainly for tests,
-* {rsrc}`writing hex instructions directly <tests/unit-tests/riscv-custom-instructions.robot#L140>` which can be used for custom instructions,
-* loading compiled ASM code directly, described below
+* [LLVMAssembler](https://github.com/renode/renode/blob/791eec59cc66650893c0ff5dd3dc2909b7229bd5/tests/unit-tests/arm-ge-flag.robot#L25) 主要用于测试
+* {rsrc}`直接编写 <tests/unit-tests/riscv-custom-instructions.robot#L140>` 可用于自定义指令的十六进制指令，
+* 直接加载编译后的 ASM 代码，如下所述
 
 ```{note}
-Before going further, it is recommended to read the [Debugging with GDB](https://renode.readthedocs.io/en/latest/debugging/gdb.html)
-and [Debugging with VSCode](https://renode.readthedocs.io/en/latest/debugging/vscode.html) chapters.
+在继续之前，建议阅读 [使用 GDB 进行调试](https://renode-docs-chinese.readthedocs.io/en/latest/debugging/gdb.html) 和[使用 VSCode 进行调试](https://renode-docs-chinese.readthedocs.io/en/latest/debugging/vscode.html)章节。
 ```
 
-## Prerequisites
+## 先决条件
 
-You need to have the target architecture's GNU toolchain, e.g [RISC-V](https://github.com/riscv-collab/riscv-gnu-toolchain) or [ARM](https://developer.arm.com/Tools%20and%20Software/GNU%20Toolchain). We'll use `riscv64-unknown-elf-*` utilities (for ARM you'd use `arm-none-eabi-*`).
+您需要拥有目标架构的 GNU 工具链，例如 [RISC-V](https://github.com/riscv-collab/riscv-gnu-toolchain) 或 [ARM](https://developer.arm.com/Tools%20and%20Software/GNU%20Toolchain)。我们将使用 `riscv64-unknown-elf-*` 实用程序（对于 ARM，您将使用 `arm-none-eabi-*`）。
 
+## 将汇编代码编译为可执行文件
 
-## Compiling assembly code to an executable
-
-Let's start with simple RISC-V assembly that stores and loads from memory at `0x00064000`:
+让我们从简单的 RISC-V 程序集开始，该程序集以 `0x00064000` 的速度存储和加载内存：
 
 ```asm
 .globl _start
@@ -33,14 +31,14 @@ loop:
     j loop
 ```
 
-To compile the code use your GNU toolchain's `as` and `ld`:
+要编译代码，请使用 GNU 工具链的 `as` 和 `ld`：
 
 ```
 riscv64-unknown-elf-as -march=rv64imac_zba_zbb asm.s -o asm.o
 riscv64-unknown-elf-ld asm.o -o asm.elf
 ```
 
-Let's use this simple asm.resc file with platform:
+让我们将这个简单的 asm.resc 文件与 platform 一起使用：
 ```
 using sysbus
 machine LoadPlatformDescriptionFromString
@@ -57,10 +55,9 @@ machine StartGdbServer 3333
 sysbus LoadELF @asm.elf
 ```
 
-Notice, that we need CPU type and model in our platform to match compiled ASM code. Here we have model `CPU.RiscV64` and `cpuType` as `rv64imac_zba_zbb`.
-For more details go to [Configuring a RISC-V CPU](https://renode.readthedocs.io/en/latest/basic/configuring-a-risc-v-cpu.html).
+请注意，我们需要平台中的 CPU 类型和模型来匹配编译的 ASM 代码。这里我们有 CPU 模型 `。RiscV64` 和 `cpuType` 作为 `rv64imac_zba_zbb`。有关更多详细信息，请转到[配置 RISC-V CPU](https://renode-docs-chinese.readthedocs.io/en/latest/basic/configuring-a-risc-v-cpu.html)。
 
-Start Renode with this .resc file:
+使用以下 .resc 文件启动 Renode：
 
 ```
 $ renode asm.resc
@@ -68,13 +65,13 @@ $ renode asm.resc
 (machine-0) 
 ```
 
-Now in separate terminal use the target architecture's GDB:
+现在在单独的终端中使用目标架构的 GDB：
 
 ```
 $ riscv64-unknown-elf-gdb asm.elf
 ```
 
-In GDB connect to Renode's GDB server:
+在 GDB 中，连接到 Renode 的 GDB 服务器：
 
 ```
 (gdb) target remote :3333
@@ -82,7 +79,7 @@ Remote debugging using :3333
 0x00000000000100b0 in _start ()
 ```
 
-It's best to use GDB's TUI with ASM and register view. To do that:
+最好将 GDB 的 TUI 与 ASM 和 register 视图一起使用。为此，请执行以下作：
 
 ```
 (gdb) tui enable
@@ -90,8 +87,7 @@ It's best to use GDB's TUI with ASM and register view. To do that:
 (gdb) layout regs
 ```
 
-Now you can see registers and our assembly source. 
-To step over use `si`.
+现在你可以看到 registers 和我们的 assembly 源。要单步执行，请使用 `si`。
 
 ```
 ┌─Register group: general────────────────────────────────────────────────────────────────────────────────────┐
@@ -116,22 +112,18 @@ remote Thread 1 (asm) In: _start                                                
 (gdb) 
 ```
 
-Do note that some instructions are pseudoinstructions and
-the source you've written may not necessarily be the same as the assembly view in GDB.
-The generated instructions may also differ between LLVMAssembler and GNU as.
+请注意，有些指令是伪指令，您编写的源代码不一定与 GDB 中的汇编视图相同。生成的指令在 LLVMAssembler 和 GNU 之间也可能有所不同。
 
-## Debugging tlib
+## 调试 tlib
 
 ```{note}
-Remember to compile and start Renode with debug flag (`build.sh -d`, `renode -d`) for this to work!
+请记住使用 debug 标志 （`build.sh -d`， `renode -d`） 编译并启动 Renode，以便其工作！
 ```
 
-Renode also gives you option to see how the instructions are being translated. To do that we'll use VSCode.
+Renode 还为您提供了查看说明如何翻译的选项。为此，我们将使用 VSCode。
 
-After starting Renode and attaching GDB, move to VSCode and navigate to `src/Infrastructure/src/Emulator/Cores/tlib/arch/riscv/translate.c`
-and set the breakpoint right before the `case OPC_RISC_LUI:`, and use the provided `(gdb) Tlib Attach` launch script.
+启动 Renode 并附加 GDB 后，移动到 VSCode 并导航到 `src/Infrastructure/src/Emulator/Cores/tlib/arch/riscv/translate.c` 并将断点设置在 `case OPC_RISC_LUI：` 之前，然后使用提供的 `（gdb） Tlib Attach` 启动脚本。
 
-Search for the Renode process, it should be `mono` or `dotnet` type, attach to it (you may need to elevate your privileges to root, for
-rootless debugging check [YAMA's ptrace_scope](https://www.kernel.org/doc/html/latest/admin-guide/LSM/Yama.html#ptrace-scope)). 
+搜索 Renode 进程，它应该是 `mono` 或 `dotnet` 类型，附加到它（您可能需要将权限提升到 root，对于无根调试，请检查 [YAMA 的 ptrace_scope](https://www.kernel.org/doc/html/latest/admin-guide/LSM/Yama.html#ptrace-scope)）。
 
-Then do `si` in GDB, which should make your VSCode stop at the previously-set breakpoint.
+然后在 GDB 中执行 `si`，这应该会让你的 VSCode 在之前设置的断点处停止。

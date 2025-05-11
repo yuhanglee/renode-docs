@@ -1,24 +1,24 @@
-# Building Renode from source
+# 从源码构建 Renode
 
-This document provides detailed information on how to prepare the build environment, and then build and test Renode itself.
+本文档提供了有关如何准备构建环境，然后构建和测试 Renode 本身的详细信息。
 
-## Prerequisites
+## 先决条件
 
-### Core prerequisites
+### 核心先决条件
 
 ::::{tab} Linux
 
-The following instructions have been tested on Ubuntu 22.04, however there should not be any major issues preventing you from using other (especially Debian-based) distributions as well.
+以下说明已在 Ubuntu 22.04 上进行了测试，但是应该不会有任何重大问题阻止您使用其他（尤其是基于 Debian）的发行版。
 
 :::{tab} Mono
-First, install the `mono-complete` package as per the installation instructions for various Linux distributions which can be found on [the Mono project website](https://www.mono-project.com/download/stable/#download-lin).
+首先，根据 [Mono 项目网站上](https://www.mono-project.com/download/stable/#download-lin)可找到的各种 Linux 发行版的安装说明安装 `mono-complete` 包。
 :::
 
 :::{tab} .NET
-First, install the `.NET SDK` package as per the installation instructions, which can be found on [the official .NET site](https://dotnet.microsoft.com/en-us/download/dotnet/8.0).
+首先，按照安装说明安装 `.NET SDK` 包，该说明可在 [.NET 官方网站](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)上找到。
 :::
 
-To install the remaining dependencies, use:
+要安装其余依赖项，请使用：
 
     sudo apt update
     sudo apt install git automake cmake autoconf libtool g++ coreutils policykit-1 \
@@ -28,15 +28,15 @@ To install the remaining dependencies, use:
 
 ::::{tab} macOS
 
-On macOS, the Mono package can be obtained by using [a download link on the Mono project website](https://download.mono-project.com/archive/mdk-latest-stable.pkg).
+在 macOS 上，可以使用 [Mono 项目网站上的下载链接](https://download.mono-project.com/archive/mdk-latest-stable.pkg)获取 Mono 包。
 
-To install the remaining prerequisites, use:
+要安装其余的必备组件，请使用：
 
     brew install binutils gnu-sed coreutils dialog cmake
     xcode-select --install
 
 :::{note}
-   This requires [homebrew](https://brew.sh/) to be installed in your system.
+   这需要在您的系统中安装 [homebrew](https://brew.sh/)。
 :::
 
 ::::
@@ -44,16 +44,15 @@ To install the remaining prerequisites, use:
 
 ::::{tab} Windows
 
-Building Renode on Windows uses MinGW and Git Bash, and requires you to properly set up the system environment.
+在 Windows 上构建 Renode 使用 MinGW 和 Git Bash，需要你正确设置系统环境。
 
 **Git**
 
-1. Download and install `git` using the default options
-   You can get it from [the official website](https://git-scm.com/downloads).
-2. Ensure the installation directory (`C:\Program Files\Git` by default) is in the system `PATH` variable. 
+1. 使用默认选项下载并安装  `git`  您可以从[官方网站](https://git-scm.com/downloads)获取它。
+2. 确保安装目录（默认为 `C：\Program Files\Git`）位于系统 `PATH` 变量中。
 
 :::{note}
-Prior to cloning the repository on *Windows*, git has to be configured appropriately. Run the following commands in Git Bash to set the options correctly:
+在  *Windows* 上克隆存储库之前，必须适当配置 git。在 Git Bash 中运行以下命令以正确设置选项：
 
     git config --global core.autocrlf false
     git config --global core.symlinks true
@@ -61,73 +60,72 @@ Prior to cloning the repository on *Windows*, git has to be configured appropria
 
 **Python 3**
 
-1. Download and install the Windows version of the Python 3 framework from [the Python website](https://www.python.org/downloads/).
-2. Add location of the binaries to the system `PATH` variable. The installer can do this for you.
+1. 从 [Python 网站](https://www.python.org/downloads/)下载并安装 Python 3 框架的 Windows 版本。
+2. 将二进制文件的位置添加到系统 `PATH` 变量中。安装程序可以为您执行此作。
 
 **MinGW**
 
-1. Download `MinGW-w64 8.1.0` with the `x86_64` architecture, `win32` threads and `sjlj` exception handling from [the download site](https://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/8.1.0/threads-win32/sjlj/x86_64-8.1.0-release-win32-sjlj-rt_v6-rev0.7z).
-2. Extract the downloaded package and add its `mingw64\bin` directory (for example `C:\mingw-w64\x86_64-8.1.0-release-win32-sjlj-rt_v6-rev0\mingw64\bin`) to the system `PATH` variable.
+1. 从[下载站点](https://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/8.1.0/threads-win32/sjlj/x86_64-8.1.0-release-win32-sjlj-rt_v6-rev0.7z)下载具有 `x86_64` 架构、`win32` 线程和 `sjlj` 异常处理的 `MinGW-w64 8.1.0`。
+2. 解压缩下载的包，并将其 `mingw64\bin` 目录（例如 `C:\mingw-w64\x86_64-8.1.0-release-win32-sjlj-rt_v6-rev0\mingw64\bin` ）添加到系统 `PATH` 变量中。
 
 **CMake**
 
-1. Download `CMake` and install Windows CMake from [the CMake website](https://cmake.org/download/).
-2. Ensure that the installation directory is in the system `PATH`. The installer will offer to do this for you
+1. 从 [CMake 网站](https://cmake.org/download/)下载 `CMake` 并安装 Windows CMake。
+2. 确保安装目录在系统 `PATH` 中。安装程序将为你执行此操作。
 
-**C# build tools**
+**C# 生成工具**
 
 :::{tab} .NET Framework
 
-1. Download [VS Build Tools 2019](https://aka.ms/vs/16/release/vs_BuildTools.exe).
-2. Run the installer, select the *Visual Studio Build Tools 2019* product and click *Install* or *Modify*.
-3. Switch to the *Individual components* pane and select:
+1. 下载 [VS Build Tools 2019](https://aka.ms/vs/16/release/vs_BuildTools.exe)。
+2. 运行安装程序，选择  *Visual Studio Build Tools 2019* 产品，然后单击 *Install （安装 ）* 或  *Modify （修改 ）* 。
+3. 切换到  *Individual components （单个组件）*  窗格，然后选择：
 
-   * *.NET Framework 4.6.2 targeting pack* in section *.NET*,
-   * *NuGet targets and build tasks* in section *Code tools*.
+   *  .NET 部分中的 .NET Framework 4.6.2 目标包 ，
+   * 代码工具部分中的 NuGet 目标和生成任务 。
 
-4. Add the location of the binaries (`C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\amd64` by default) to the system `PATH` variable.
+4. 将二进制文件的位置（ `C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\amd64` 默认）添加到系统 `PATH` 变量中。
 
 :::
 
 :::{tab} .NET
 
-See [the official .NET site](https://dotnet.microsoft.com/en-us/download/dotnet/8.0) for instructions on how to install `.NET SDK`.
+有关如何安装 `.NET SDK` 的说明， [请参阅 .NET 官方网站](https://dotnet.microsoft.com/en-us/download/dotnet/8.0) 。
 
 :::
 
 ::::
 
-## Downloading the source code
+## 下载源码
 
-Renode’s source code is available on GitHub:
+Renode 的源代码可在 GitHub 上找到：
 
     git clone https://github.com/renode/renode.git
     cd renode
 
-Submodules will be automatically initialized and downloaded during the build process, so you do not need to do it at this point.
+子模块将在构建过程中自动初始化和下载，因此此时无需执行此作。
 
-### Additional prerequisites (for Robot framework testing)
+### 其他先决条件（用于 Robot 框架测试）
 
-If you followed the instructions above, Python should be installed in your system.
-Install the `pip` package manager and some additional modules to enable writing and running test cases with the Robot framework:
+如果您按照上述说明作，则应在您的系统中安装 Python。安装 `pip` 包管理器和一些其他模块，以便能够使用 Robot 框架编写和运行测试用例：
 
     python3 -m pip install -r tests/requirements.txt
 
-## Building Renode
+## 构建 Renode
 
 :::{note}
-On Windows, the building process described in this section can only be executed in Git Bash.
+在 Windows 上，本节中描述的构建过程只能在 Git Bash 中执行。
 :::
 
 :::{note}
-When building Renode with `.NET`, remember to use `--net` switch (`./build.sh --net`).
+使用 `.NET` 构建 Renode 时，请记住使用 `--net` 开关 （`./build.sh --net`）。
 :::
 
-To build Renode, run:
+要构建 Renode，请运行：
 
     ./build.sh
 
-There are some optional flags you can use:
+您可以使用一些可选标志：
 
     -c                                clean instead of building
     -d                                build in debug configuration
@@ -152,26 +150,25 @@ There are some optional flags you can use:
     --skip-dotnet-target-generation   don't generate 'Directory.Build.targets' file, useful when experimenting with different build settings
 
 
-Additionally you can directly specify flags which will be passed to the build system after `--`.
-For example, if you wanted to override the `CompilerPath` property you could use::
+此外，您可以直接指定标志，这些标志将在 `--` 之后传递给构建系统。例如，如果要覆盖 `CompilerPath` 属性，可以使用：
 
     ./build.sh -- p:CompilerPath=/path/to/gcc
 
-You can also build `Renode.sln` from your IDE (like MonoDevelop or Visual Studio), but the `build.sh` script has to be run at least once.
+你也可以从 IDE 构建 `Renode.sln`（比如 MonoDevelop 或 Visual Studio），但 `build.sh` 脚本必须至少运行一次。
 
-## Creating packages
+## 创建包
 
-The build script can create native packages only, i.e., you must run it on Windows to create an `.msi` installer package, on Linux for `.deb`, `.rpm` and `.pkg.tar.xz` packages or on macOS for the `.dmg` image.
+构建脚本只能创建本机软件包，即，您必须在 Windows 上运行它以创建 `.msi` 安装程序包，在 Linux 上运行它以创建 `.deb`、`.rpm` 和 `.pkg.tar.xz` 软件包，或者在 macOS 上运行它以创建 `.dmg` 映像。
 
-There is also a separate procedure to create [Conda](https://docs.conda.io/en/latest/) packages, described in a [dedicated README](https://github.com/renode/renode/tree/master/tools/packaging/conda).
+还有一个用于创建 [Conda](https://docs.conda.io/en/latest/) 包的单独过程，如[专用 README](https://github.com/renode/renode/tree/master/tools/packaging/conda) 中所述。
 
-### Prerequisites
+### 先决条件
 
-Depending on the system, there may be some prerequisites for building Renode packages.
+根据系统的不同，构建 Renode 包可能有一些先决条件。
 
 :::{tab} Linux
 
-Run:
+运行：
 
     sudo apt-get install ruby ruby-dev rpm 'bsdtar|libarchive-tools'
     sudo gem install fpm
@@ -180,7 +177,7 @@ Run:
 
 :::{tab} macOS
 
-No additional prerequisites for macOS.
+macOS 没有其他先决条件。
 
 :::
 
@@ -188,33 +185,33 @@ No additional prerequisites for macOS.
 
 :::{note}
 
-On Windows 10, it is important to enable .NET 3.5 in the system before installing the WiX Toolset.
+在 Windows 10 上，在安装 WiX 工具集之前在系统中启用 .NET 3.5 非常重要。
 
-The packaging process described in this section can only be executed in Git Bash.
+本节中描述的打包过程只能在 Git Bash 中执行。
 
 :::
 
-1. Download and install the [WiX Toolset installer](https://wixtoolset.org/releases/) (version at least 3.11).
+下载并安装 [WiX Toolset 安装程序](https://wixtoolset.org/releases/) （版本至少为 3.11）。
 
 ::::
 
-### Building
+### 构建
 
-To build binary packages, run:
+要构建二进制包，请运行：
 
     ./build.sh -p
 
-The packages will have a version assigned to them, defined by the contents of the `tools/version` file.
+包将分配一个版本，由 `tools/version` 文件的内容定义。
 
-You can also build nightly packages with:
+您还可以使用以下方法构建 nightly 包：
 
     ./build.sh -pn
 
-This will append a date and a commit SHA to the output files.
+这会将日期和提交 SHA 附加到输出文件。
 
-### Location of packages
+### 软件包的位置
 
-After completing successfully, the script will print the location of the files created:
+成功完成后，脚本将打印所创建文件的位置：
 
 :::{tab} Linux
 

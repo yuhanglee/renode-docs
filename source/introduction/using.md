@@ -64,7 +64,7 @@ CLI 提供带有交互式搜索  <kbd>Ctrl</kbd>+<kbd>R</kbd> 的命令历史�
 
 ## 基本的交互式工作流程
 
-当以交互方式运行 Renode 时，用户通常会首先通过一系列命令 {ref}`creating the emulation <working-with-machines>` ，从而构建、配置和连接相关的仿真（来宾）平台或平台（称为“机器”）。
+当以交互方式运行 Renode 时，用户通常会首先通过一系列命令 {ref}`创建模拟环境 <working-with-machines>` ，从而构建、配置和连接相关的仿真（来宾）平台或平台（称为“机器”）。
 
 这通常使用嵌套的 {ref}`scripts` 来完成，这些脚本有助于封装此活动中的一些可重复元素（通常，用户希望在两次运行之间一遍又一遍地创建相同的平台，甚至完全编写执行脚本）。
 
@@ -94,10 +94,10 @@ include @scripts/single-node/quark_c1000.resc
 如果在上述命令中使用 `start` （或仅使用 `s`） 而不是 `include`，则仿真将在加载脚本后立即开始。
 
 ```{note}
-请记住使用 `@` 后面的 Tab 键进行路径自动补全，如 {ref}`previous section <monitor>` 所述。
+请记住使用 `@` 后面的 Tab 键进行路径自动补全，如 {ref}`上一节 <monitor>` 所述。
 ```
 
-请记住使用 `@` 后面的 Tab 键进行路径自动补全，如[上一节](https://renode.readthedocs.io/en/latest/introduction/using.html#monitor)所述。
+
 
 [内置的 Renode 演示脚本](https://github.com/renode/renode/tree/master/scripts)是一个很好的切入点 - 要运行您的第一个演示，请继续阅读[运行您的第一个演示](https://renode.readthedocs.io/en/latest/introduction/demo.html)章节。
 

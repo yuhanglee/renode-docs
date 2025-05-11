@@ -6,7 +6,7 @@ Renode 允许您精确控制仿真的执行。
 
 ## 开始和暂停执行
 
-开始时，仿真处于_暂停_状态，这意味着没有计算机正在运行， *虚拟时间*也没有进行。
+开始时，仿真处于 *暂停*   状态，这意味着没有计算机正在运行， *虚拟时间*  也没有进行。
 
 要启动仿真，请执行：
 
@@ -30,7 +30,7 @@ Pausing emulation...
 有关如何在 GDB 中执行步骤的更多信息，请参阅 [GDB 文档](https://sourceware.org/gdb/download/onlinedocs/gdb/Continuing-and-Stepping.html) 。
 ```
 
-当您需要详细分析二进制文件的执行如何影响硬件的状态时，您可以切换到_单步执行_模式：
+当您需要详细分析二进制文件的执行如何影响硬件的状态时，您可以切换到  *单步执行*   模式：
 
 ```none
 (machine-0) sysbus.cpu ExecutionMode SingleStepBlocking
@@ -42,7 +42,7 @@ Pausing emulation...
 (machine-0) sysbus.cpu Step
 ```
 
-当您想要返回到*正常*执行模式时，请键入：
+当您想要返回到 *正常* 执行模式时，请键入：
 
 ```none
 (machine-0) sysbus.cpu ExecutionMode Continuous
